@@ -1,0 +1,21 @@
+{
+  "name": "social-compliance-generator",
+  "version": "1.0.0",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "npx trigger.dev@beta dev",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@trigger.dev/sdk": "3.0.0-beta.35",
+    "axios": "^1.7.2",
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5"
+  }
+}
