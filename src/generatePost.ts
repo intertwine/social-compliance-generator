@@ -1,23 +1,15 @@
-import axios from 'axios';
-import dotenv from 'dotenv';
+// import axios from "axios";
+import { generateText } from "./util/claude";
+import dotenv from "dotenv";
 dotenv.config();
 
 const getRandomPrompt = (): string => {
-  const prompts = ["Nepalese Cat Month", "World Environment Day", "Tech Innovation of the Month"];
+  const prompts = [
+    "Nepalese Cat Month",
+    "World Environment Day",
+    "Tech Innovation of the Month",
+  ];
   return prompts[Math.floor(Math.random() * prompts.length)];
-};
-
-const generateText = async (prompt: string): Promise<string> => {
-  try {
-    // const response = await axios.post<{ text: string }>('https://api.geminiflash.com/generate', { prompt }, {
-    //   headers: { 'Authorization': `Bearer ${process.env.GEMINI_FLASH_API_KEY}` }
-    // });
-    // return response.data.text;
-    return "Test text from generateText";
-  } catch (error: any) {
-    console.error('Error generating text:', error);
-    throw new Error('Failed to generate text.');
-  }
 };
 
 const generateSong = async (prompt: string): Promise<string> => {
@@ -28,8 +20,8 @@ const generateSong = async (prompt: string): Promise<string> => {
     // return response.data.song_url;
     return "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
   } catch (error: any) {
-    console.error('Error generating song:', error);
-    throw new Error('Failed to generate song.');
+    console.error("Error generating song:", error);
+    throw new Error("Failed to generate song.");
   }
 };
 
@@ -41,12 +33,16 @@ const generateImage = async (prompt: string): Promise<string> => {
     // return response.data.image_url;
     return "https://images.unsplash.com/photo-1716847214582-d5979adbf300?q=80&w=640&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D";
   } catch (error: any) {
-    console.error('Error generating image:', error);
-    throw new Error('Failed to generate image.');
+    console.error("Error generating image:", error);
+    throw new Error("Failed to generate image.");
   }
 };
 
-const postToFacebook = async (content: string): Promise<string> => {
+const postToFacebook = async (
+  content: string,
+  songUrl: string,
+  imageUrl: string
+): Promise<string> => {
   try {
     // const accessToken = process.env.FACEBOOK_ACCESS_TOKEN;
     // const url = 'https://graph.facebook.com/v12.0/me/feed';
@@ -58,25 +54,32 @@ const postToFacebook = async (content: string): Promise<string> => {
     // await axios.post(url, payload);
     return "https://www.facebook.com/bryanyoung/posts/10159801202064103";
   } catch (error: any) {
-    console.error('Error posting to Facebook:', error);
-    throw new Error('Failed to post to Facebook.');
+    console.error("Error posting to Facebook:", error);
+    throw new Error("Failed to post to Facebook.");
   }
 };
 
-const generatePost = async (): Promise<string|boolean> => {
+const generatePost = async (): Promise<string | boolean> => {
   try {
     const prompt = getRandomPrompt();
-    const text = await generateText(prompt);
+    const { postContent, imagePrompt } = await generateText(prompt);
+    const imageUrl = await generateImage(imagePrompt);
     const songUrl = await generateSong(prompt);
-    const imageUrl = await generateImage(prompt);
 
-    const postContent = `${text}\n${songUrl}\n${imageUrl}`;
-    const postUrl = await postToFacebook(postContent);
+    const postUrl = await postToFacebook(postContent, songUrl, imageUrl);
 
-    console.log('Post generated and published successfully.');
+    console.info(
+      `Post generated and published successfully.\n
+        Prompt: ${prompt}\n
+        Text: ${postContent}\n
+        Image Prompt: ${imagePrompt}\n
+        Image URL: ${imageUrl}\n
+        Song URL: ${songUrl}\n
+        Post URL: ${postUrl}`
+    );
     return postUrl;
   } catch (error: any) {
-    console.error('Error generating post:', error);
+    console.error("Error generating post:", error);
     return false;
   }
 };

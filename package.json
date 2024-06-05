@@ -11,9 +11,11 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.22.0",
     "@trigger.dev/sdk": "3.0.0-beta.35",
     "axios": "^1.7.2",
-    "dotenv": "^16.4.5"
+    "dotenv": "^16.4.5",
+    "openai": "^4.48.1"
   },
   "devDependencies": {
     "typescript": "^5.4.5"
