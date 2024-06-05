@@ -1,5 +1,6 @@
 // import axios from "axios";
 import { generateText } from "./util/claude";
+import { generateImage } from "./util/openai";
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -8,6 +9,24 @@ const getRandomPrompt = (): string => {
     "Nepalese Cat Month",
     "World Environment Day",
     "Tech Innovation of the Month",
+    "International Coffee Day",
+    "Global Recycling Practices",
+    "Future of Renewable Energy",
+    "Wildlife Conservation Efforts",
+    "Advancements in AI Technology",
+    "Cultural Festivals Around the World",
+    "Deep Sea Exploration Discoveries",
+    "Space Travel Milestones",
+    "Historical Anniversaries of the Year",
+    "Global Health Awareness Initiatives",
+    "Artificial Intelligence in Medicine",
+    "Sustainable Urban Development",
+    "Impact of Globalization on Local Cultures",
+    "Preservation of Endangered Languages",
+    "Innovations in Sustainable Agriculture",
+    "Virtual Reality in Education",
+    "Human Rights Achievements",
+    "Cybersecurity Trends and Threats"
   ];
   return prompts[Math.floor(Math.random() * prompts.length)];
 };
@@ -22,19 +41,6 @@ const generateSong = async (prompt: string): Promise<string> => {
   } catch (error: any) {
     console.error("Error generating song:", error);
     throw new Error("Failed to generate song.");
-  }
-};
-
-const generateImage = async (prompt: string): Promise<string> => {
-  try {
-    // const response = await axios.post<{ image_url: string }>('https://api.dalle.com/generate', { prompt }, {
-    //   headers: { 'Authorization': `Bearer ${process.env.DALL_E_API_KEY}` }
-    // });
-    // return response.data.image_url;
-    return "https://images.unsplash.com/photo-1716847214582-d5979adbf300?q=80&w=640&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D";
-  } catch (error: any) {
-    console.error("Error generating image:", error);
-    throw new Error("Failed to generate image.");
   }
 };
 

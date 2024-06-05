@@ -44,4 +44,23 @@ const generateText = async (
   }
 };
 
-export { generateText };
+const generateImage = async (prompt: string): Promise<string> => {
+  try {
+    const response = await openai.images.generate({
+      model: "dall-e-3",
+      prompt,
+      n: 1,
+      size: "1024x1024",
+      response_format: "url",
+    });
+    if (!response.data || !response.data[0] || !response.data[0].url) {
+      throw new Error("Failed to generate image");
+    }
+    return response.data[0].url;
+  } catch (error: any) {
+    console.error("Error generating image with OpenAI:", error);
+    throw new Error("Failed to generate image using OpenAI.");
+  }
+};
+
+export { generateText, generateImage };
