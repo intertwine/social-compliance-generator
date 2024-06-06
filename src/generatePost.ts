@@ -1,6 +1,7 @@
 // import axios from "axios";
 import { generateText } from "./util/claude";
 import { generateImage } from "./util/openai";
+import { generateSong } from "./util/huggingface";
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -26,22 +27,9 @@ const getRandomPrompt = (): string => {
     "Innovations in Sustainable Agriculture",
     "Virtual Reality in Education",
     "Human Rights Achievements",
-    "Cybersecurity Trends and Threats"
+    "Cybersecurity Trends and Threats",
   ];
   return prompts[Math.floor(Math.random() * prompts.length)];
-};
-
-const generateSong = async (prompt: string): Promise<string> => {
-  try {
-    // const response = await axios.post<{ song_url: string }>('https://api.sono.com/generate', { prompt }, {
-    //   headers: { 'Authorization': `Bearer ${process.env.SONO_API_KEY}` }
-    // });
-    // return response.data.song_url;
-    return "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
-  } catch (error: any) {
-    console.error("Error generating song:", error);
-    throw new Error("Failed to generate song.");
-  }
 };
 
 const postToFacebook = async (
