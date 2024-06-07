@@ -1,4 +1,4 @@
-# Social Compliance Generator
+# Social Compliance Generator AI
 
 This project is part of Bryan Young's [AI Creation of the Week Series](https://intertwinesys.com/) - Week 1.
 
@@ -6,9 +6,13 @@ This project is part of Bryan Young's [AI Creation of the Week Series](https://i
 
 Very often, I feel pressured to create content for social media platforms like Facebook, Twitter, and Instagram.
 However, I don't really care about those platforms, so I just don't ever get around to it.
+
 This project aims to address this challenge by using AI to generate daily content for social media platforms,
-and it gives me a chance to play with various AI APIs and models. I'm open sourcing the project so you can adapt it
-and become socially compliant too!
+and it gives me a chance to play with various AI APIs and models.
+
+I'm open sourcing the project so you can adapt it and become socially compliant too!
+
+If it seems like the start of a fun new paid service you'd like to use, let me know and we will find a way to charge you for it.
 
 The generator uses the following AI models:
 
@@ -16,7 +20,7 @@ The generator uses the following AI models:
 - OpenAI DALL-E - for image generation
 - Facebook(Xenova) MusicGen - for song generation
 
-The generator uses Supabase Storage to store the generated music content prior to uploading it to a Facebook page.
+The generator uses Supabase Storage to store the generated music content prior to uploading it to social media platforms.
 
 ## Getting Started
 
