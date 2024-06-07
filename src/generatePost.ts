@@ -1,7 +1,7 @@
 // import axios from "axios";
 import { generateText } from "./util/claude";
 import { generateImage } from "./util/openai";
-import { generateSong } from "./util/huggingface";
+import { generateSong } from "./util/musicgen";
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -56,17 +56,18 @@ const postToFacebook = async (
 const generatePost = async (): Promise<string | boolean> => {
   try {
     const prompt = getRandomPrompt();
-    const { postContent, imagePrompt } = await generateText(prompt);
+    const { postContent, imagePrompt, songPrompt } = await generateText(prompt);
     const imageUrl = await generateImage(imagePrompt);
-    const songUrl = await generateSong(prompt);
+    const songUrl = await generateSong(songPrompt);
 
     const postUrl = await postToFacebook(postContent, songUrl, imageUrl);
 
     console.info(
       `Post generated and published successfully.\n
-        Prompt: ${prompt}\n
-        Text: ${postContent}\n
+        Original Prompt: ${prompt}\n
         Image Prompt: ${imagePrompt}\n
+        Song Prompt: ${songPrompt}\n
+        Post Content: ${postContent}\n
         Image URL: ${imageUrl}\n
         Song URL: ${songUrl}\n
         Post URL: ${postUrl}`

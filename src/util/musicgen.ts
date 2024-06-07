@@ -1,3 +1,12 @@
+import { uploadStreamToS3 } from "./upload";
+import { WaveFile } from "wavefile";
+
+const generateSongFileName = (prompt: string) => {
+  const now = Math.floor(new Date().getTime() / 1000);
+  const baseName = `song-${now}-${prompt.replace(/[^a-zA-Z0-9]/g, "-")}`;
+  return `${baseName.toLowerCase().substring(0, 64)}.wav`;
+};
+
 const generateSong = async (prompt: string): Promise<string> => {
   // @See https://huggingface.co/Xenova/musicgen-small
   try {
@@ -25,11 +34,26 @@ const generateSong = async (prompt: string): Promise<string> => {
       do_sample: true,
       guidance_scale: 3,
     });
-    console.log(audio_values.data.length);
+    console.info(
+      "Generated audio bytes with length:",
+      audio_values.data.length
+    );
 
-    // TODO: Upload the audio to a cloud storage service and return the URL
-    // Initial Approach: use the wavefile library to convert to wav and stream to supabase
-    return "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
+    const wav = new WaveFile();
+    wav.fromScratch(
+      1,
+      model.config.audio_encoder.sampling_rate,
+      "32f",
+      audio_values.data
+    );
+    const songUrl = await uploadStreamToS3(
+      wav.toBuffer(),
+      "social-compliance-generator",
+      generateSongFileName(prompt)
+    );
+    console.info("Uploaded song to S3:", songUrl);
+
+    return songUrl;
   } catch (error: any) {
     console.error("Error generating song:", error);
     throw new Error("Failed to generate song.");

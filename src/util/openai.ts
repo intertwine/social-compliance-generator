@@ -5,17 +5,19 @@ const openai = new OpenAI();
 type generateTextResponse = {
   postContent: string;
   imagePrompt: string;
+  songPrompt: string;
 };
 
 const generateText = async (
   promptText: string
 ): Promise<generateTextResponse> => {
-  const prompt = `The prompt is: "Generate a short facebook post and a prompt for an AI image generator
-  based on this topic: ${promptText}." Do not include any other text, just the json.
-  The json should be in the following format:
+  const prompt = `The prompt is: "Generate a short facebook post, a prompt for an AI image generator
+  and a prompt for an AI song generator based on this topic: ${promptText}."
+  Do not include any other text, just the json. The json should be in the following format:
   {
     "postContent": "The content of the post",
-    "imagePrompt": "The prompt for the image generator"
+    "imagePrompt": "The prompt for the image generator",
+    "songPrompt": "The prompt for the song generator"
   }`;
   try {
     const response = await openai.chat.completions.create({
@@ -37,7 +39,8 @@ const generateText = async (
     const messageContent = response.choices[0].message.content ?? "";
     const postContent = JSON.parse(messageContent).postContent;
     const imagePrompt = JSON.parse(messageContent).imagePrompt;
-    return { postContent, imagePrompt };
+    const songPrompt = JSON.parse(messageContent).songPrompt;
+    return { postContent, imagePrompt, songPrompt };
   } catch (error: any) {
     console.error("Error generating text with OpenAI:", error);
     throw new Error("Failed to generate text using OpenAI.");

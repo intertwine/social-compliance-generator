@@ -11,5 +11,6 @@ declare module "@xenova/transformers" {
       options?: any
     ): Promise<MusicgenForConditionalGeneration>;
     generate(options: any): Promise<any>;
+    config: any;
   }
 }
