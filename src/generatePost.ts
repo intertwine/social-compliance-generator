@@ -1,66 +1,35 @@
-// import axios from "axios";
+import fs from "fs";
+import path from "path";
+import { createPost as createPostForFacebook } from "./platforms/facebook";
+import { createPost as createPostForInstagram } from "./platforms/instagram";
+import { createPost as createPostForX } from "./platforms/x";
 import { generateText } from "./util/claude";
-import { generateImage } from "./util/openai";
 import { generateSong } from "./util/musicgen";
-import dotenv from "dotenv";
-dotenv.config();
+import { generateImage } from "./util/openai";
 
 const getRandomPrompt = (): string => {
-  const prompts = [
-    "Nepalese Cat Month",
-    "World Environment Day",
-    "Tech Innovation of the Month",
-    "International Coffee Day",
-    "Global Recycling Practices",
-    "Future of Renewable Energy",
-    "Wildlife Conservation Efforts",
-    "Advancements in AI Technology",
-    "Cultural Festivals Around the World",
-    "Deep Sea Exploration Discoveries",
-    "Space Travel Milestones",
-    "Historical Anniversaries of the Year",
-    "Global Health Awareness Initiatives",
-    "Artificial Intelligence in Medicine",
-    "Sustainable Urban Development",
-    "Impact of Globalization on Local Cultures",
-    "Preservation of Endangered Languages",
-    "Innovations in Sustainable Agriculture",
-    "Virtual Reality in Education",
-    "Human Rights Achievements",
-    "Cybersecurity Trends and Threats",
-  ];
+  const prompts = JSON.parse(fs.readFileSync(path.resolve(__dirname, "../src/topics.json"), "utf8")).topics;
   return prompts[Math.floor(Math.random() * prompts.length)];
 };
 
-const postToFacebook = async (
-  content: string,
-  songUrl: string,
-  imageUrl: string
-): Promise<string> => {
-  try {
-    // const accessToken = process.env.FACEBOOK_ACCESS_TOKEN;
-    // const url = 'https://graph.facebook.com/v12.0/me/feed';
-    // const payload = {
-    //   message: content,
-    //   access_token: accessToken,
-    // };
-
-    // await axios.post(url, payload);
-    return "https://www.facebook.com/bryanyoung/posts/10159801202064103";
-  } catch (error: any) {
-    console.error("Error posting to Facebook:", error);
-    throw new Error("Failed to post to Facebook.");
-  }
-};
-
-const generatePost = async (): Promise<string | boolean> => {
+const generatePost = async (): Promise<boolean> => {
   try {
     const prompt = getRandomPrompt();
     const { postContent, imagePrompt, songPrompt } = await generateText(prompt);
     const imageUrl = await generateImage(imagePrompt);
     const songUrl = await generateSong(songPrompt);
 
-    const postUrl = await postToFacebook(postContent, songUrl, imageUrl);
+    const facebookPostUrl = await createPostForFacebook(
+      postContent,
+      songUrl,
+      imageUrl
+    );
+    const instagramPostUrl = await createPostForInstagram(
+      postContent,
+      songUrl,
+      imageUrl
+    );
+    const xPostUrl = await createPostForX(postContent, songUrl, imageUrl);
 
     console.info(
       `Post generated and published successfully.\n
@@ -70,19 +39,19 @@ const generatePost = async (): Promise<string | boolean> => {
         Post Content: ${postContent}\n
         Image URL: ${imageUrl}\n
         Song URL: ${songUrl}\n
-        Post URL: ${postUrl}`
+        Post URL: ${facebookPostUrl}\n
+        Post URL: ${instagramPostUrl}\n
+        Post URL: ${xPostUrl}`
     );
-    return postUrl;
+    return true;
   } catch (error: any) {
     console.error("Error generating post:", error);
     return false;
   }
 };
 
-// Export the function for Trigger.dev
 export { generatePost };
 
-// If the script is run directly, call the function
 if (require.main === module) {
   generatePost();
 }

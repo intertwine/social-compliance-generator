@@ -4,15 +4,16 @@ This project is part of Bryan Young's [AI Creation of the Week Series](https://i
 
 ## Overview
 
-Very often, I feel pressured to create content for social media platforms like Facebook, Twitter, and Instagram.
-However, I don't really care about those platforms, so I just don't ever get around to it.
+Very often, I feel pressured to create content for social media platforms like X, Facebook, and Instagram.
+However, I hate the hassle of posting to those platforms, so I just don't ever get around to it.
 
 This project aims to address this challenge by using AI to generate daily content for social media platforms,
 and it gives me a chance to play with various AI APIs and models.
 
 I'm open sourcing the project so you can adapt it and become socially compliant too!
 
-If it seems like the start of a fun new paid service you'd like to use, let me know and we will find a way to charge you for it.
+Like all my Creation of the Week projects, if it seems like the start of a fun new paid service you'd like to use,
+let me know and we will find a way to charge you for it.
 
 The generator uses the following AI models:
 
