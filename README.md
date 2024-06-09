@@ -36,22 +36,15 @@ See [README-AUTH.md](README-AUTH.md) for instructions on how to generate authent
 1. Create an Anthropic account and set up an API key for Claude.
 1. Create an OpenAI account and set up an API key for DALL-E.
 1. Create a Hugging Face account and set up an API key for Facebook/MusicGen.
-1. Create a Facebook page and set up an access token.
+1. Create a X.com developer account and separate bot account and set up access tokens.
+
+Detailed instructions for each of these steps can be found in [README-AUTH.md](README-AUTH.md).
 
 ### Project Setup
 
 1. Clone the repository to your local machine.
 1. Install the project dependencies by running `npm install` in the project directory.
-1. Create an .env file in the project directory and add keys for the following environment variables:
-   - `FACEBOOK_ACCESS_TOKEN`: Your Facebook access token.
-   - `AWS_ACCESS_KEY_ID`: Your AWS access key ID.
-   - `AWS_SECRET_ACCESS_KEY`: Your AWS secret access key.
-   - `AWS_REGION`: Your AWS region.
-   - `AWS_S3_BUCKET`: Your AWS S3 bucket.
-   - `AWS_ENDPOINT`: Your AWS endpoint.
-   - `ANTHROPIC_API_KEY`: Your Anthropic API key.
-   - `OPENAI_API_KEY`: Your OpenAI API key.
-   - `HF_TOKEN`: Your Hugging Face API token.
+1. Setup accounts and environment variables as detailed above.
 
 ### Running the Project
 

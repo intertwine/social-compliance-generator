@@ -45,29 +45,44 @@ Once you have the access token and refresh token, you can stop the xauth server.
 
 ### Facebook
 
-[Placeholder]
+[Placeholder - not implemented yet]
 
 ### Instagram
 
-[Placeholder]
+[Placeholder - not implemented yet]
 
 ## APIs
 
 ### Trigger.dev
 
-[Placeholder]
+Used to schedule and host the generation task.
+
+1. [Create a trigger.dev account](https://cloud.trigger.dev/login) and set up a v3 project.
+    - Quickstart Docs: <https://trigger.dev/docs/v3/quick-start>
 
 ### Anthropic
 
-[Placeholder]
+Used to generate text content.
+
+1. [Create an Anthropic Claude account](https://claude.ai/login)
+1. Set up an API key for Claude and update this key in your .env file:
+    - `ANTHROPIC_API_KEY=sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`
 
 ### OpenAI
 
-[Placeholder]
+Used to generate text content and images.
+
+1. [Create an OpenAI account](https://platform.openai.com/account/api-keys)
+1. Set up an API key for OpenAI and update this key in your .env file:
+    - `OPENAI_API_KEY=sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`
 
 ### Hugging Face
 
-[Placeholder]
+Used to download the musicgen model and run inference on it.
+
+1. [Create an Hugging Face account](https://huggingface.co/login)
+1. [Set up an API key for Hugging Face](https://huggingface.co/settings/tokens) and update this key in your .env file:
+    - `HF_TOKEN=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`
 
 ### Supabase
 

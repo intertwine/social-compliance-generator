@@ -6,6 +6,13 @@ dotenv.config();
 
 const PLATFORM_NAME = "X.com"; // Or call it Twitter if you like
 
+// X OAuth 1.1a Credentials (For Twitter API V1)
+const APP_TOKEN = process.env.X_API_CONSUMER_TOKEN;
+const APP_SECRET = process.env.X_API_CONSUMER_SECRET;
+const X_V1_ACCESS_TOKEN = process.env.X_API_V1_ACCESS_TOKEN;
+const X_V1_ACCESS_SECRET = process.env.X_API_V1_ACCESS_SECRET;
+
+// X Oauth 2.0 Credentials (For Twitter API V2)
 const CLIENT_ID = process.env.X_API_CLIENT_ID;
 const CLIENT_SECRET = process.env.X_API_CLIENT_SECRET;
 const ACCESS_TOKEN = process.env.X_API_ACCESS_TOKEN;
@@ -16,7 +23,7 @@ type ILoginTokenResult = {
   refreshToken: string;
 };
 
-const getLoginTokens = async (): Promise<ILoginTokenResult|Error> => {
+const getLoginTokens = async (): Promise<ILoginTokenResult | Error> => {
   if (!ACCESS_TOKEN || !INITAL_REFRESH_TOKEN) {
     throw new Error("Missing required token environment variables");
   }
@@ -62,11 +69,31 @@ const saveLoginTokens = async (
   return { accessToken, refreshToken: data.token };
 };
 
+const getV1UserClient = async () => {
+  // TwitterAPI V1 Docs here: <https://github.com/twitter/twitter-api-v1/blob/master/doc/v1.md>
+  if (!APP_TOKEN || !APP_SECRET || !X_V1_ACCESS_TOKEN || !X_V1_ACCESS_SECRET) {
+    throw new Error(
+      `Missing required environment variables ${PLATFORM_NAME} V1`
+    );
+  }
+
+  const v1Client = new TwitterApi({
+    appKey: APP_TOKEN,
+    appSecret: APP_SECRET,
+    accessToken: X_V1_ACCESS_TOKEN,
+    accessSecret: X_V1_ACCESS_SECRET,
+  });
+
+  return v1Client;
+};
+
 const getUserClient = async () => {
   // TwitterAPI V2 Docs here: <https://github.com/PLhery/node-twitter-api-v2/blob/master/doc/v2.md>
   // Twitter Plugin Token Refresher Docs here: <https://github.com/alkihis/twitter-api-v2-plugin-token-refresher>
   if (!ACCESS_TOKEN || !INITAL_REFRESH_TOKEN || !CLIENT_ID || !CLIENT_SECRET) {
-    throw new Error(`Missing required environment variables ${PLATFORM_NAME}`);
+    throw new Error(
+      `Missing required environment variables ${PLATFORM_NAME} V2`
+    );
   }
   const credentials = { clientId: CLIENT_ID, clientSecret: CLIENT_SECRET };
   const tokenStore = await getLoginTokens();
@@ -94,24 +121,24 @@ const getUserClient = async () => {
   return userClient;
 };
 
-const postTemplate = (
-  textContent: string,
-  imageUrl: string,
-  songUrl: string
-) => {
-  return textContent;
-};
-
-const createPost = async (
-  content: string,
-  songUrl: string,
-  imageUrl: string
-): Promise<string> => {
+const createVideoPost = async (content: string, videoBuffer: Buffer) => {
+  // @See: <https://github.com/PLhery/node-twitter-api-v2/issues/451#issuecomment-1900704325>
   try {
-    const userClient = await getUserClient();
-    const createdTweet = await userClient.v2.tweet(
-      postTemplate(content, imageUrl, songUrl)
-    );
+    const v1Client = await getV1UserClient();
+    const v2Client = await getUserClient();
+
+    const additionalOwners = (await v2Client.currentUserV2()).data.id;
+
+    const mediaId = await v1Client.v1.uploadMedia(videoBuffer, {
+      mimeType: "video/mp4",
+      additionalOwners,
+    });
+
+    const createdTweet = await v2Client.v2.tweet({
+      text: content,
+      media: { media_ids: [mediaId] },
+    });
+
     console.info(`Successfully posted to ${PLATFORM_NAME}`);
     console.info("Tweet:", createdTweet);
     return createdTweet.data.id;
@@ -121,4 +148,4 @@ const createPost = async (
   }
 };
 
-export { createPost };
+export { createVideoPost };

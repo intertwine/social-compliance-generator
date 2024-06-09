@@ -2,10 +2,10 @@ import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import dotenv from "dotenv";
 dotenv.config();
 
-const S3_ACCESS_KEY = process.env.SUPABASE_AWS_S3_ACCESS_KEY_ID || "";
-const S3_SECRET_KEY = process.env.SUPABASE_AWS_S3_SECRET || "";
-const S3_REGION = process.env.SUPABASE_AWS_S3_REGION || "";
-const S3_ENDPOINT = process.env.SUPABASE_AWS_S3_ENDPOINT || "";
+const S3_ACCESS_KEY = process.env.AWS_S3_ACCESS_KEY_ID;
+const S3_SECRET_KEY = process.env.AWS_S3_SECRET;
+const S3_REGION = process.env.AWS_S3_REGION;
+const S3_ENDPOINT = process.env.AWS_S3_ENDPOINT;
 
 const getClient = () => {
   try {
@@ -15,11 +15,11 @@ const getClient = () => {
 
     return new S3Client({
       forcePathStyle: true,
-      region: S3_REGION,
-      endpoint: S3_ENDPOINT,
+      region: S3_REGION!,
+      endpoint: S3_ENDPOINT!,
       credentials: {
-        accessKeyId: S3_ACCESS_KEY,
-        secretAccessKey: S3_SECRET_KEY,
+        accessKeyId: S3_ACCESS_KEY!,
+        secretAccessKey: S3_SECRET_KEY!,
       },
     });
   } catch (error: any) {
@@ -29,6 +29,11 @@ const getClient = () => {
 };
 
 const getSupabasePublicStorageUrl = (bucket: string, key: string) => {
+  if (!S3_ENDPOINT) {
+    throw new Error(
+      "Missing required environment variable: AWS_S3_ENDPOINT"
+    );
+  }
   const baseUrl = S3_ENDPOINT.replace("/s3", "/object/public");
   return `${baseUrl}/${bucket}/${key}`;
 };

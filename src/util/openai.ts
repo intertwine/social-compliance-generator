@@ -1,8 +1,9 @@
+import fs from "fs";
 import OpenAI from "openai";
 
 const openai = new OpenAI();
 
-type generateTextResponse = {
+type IGenerateTextResponse = {
   postContent: string;
   imagePrompt: string;
   songPrompt: string;
@@ -10,7 +11,7 @@ type generateTextResponse = {
 
 const generateText = async (
   promptText: string
-): Promise<generateTextResponse> => {
+): Promise<IGenerateTextResponse> => {
   const prompt = `The prompt is: "Generate a short facebook post, a prompt for an AI image generator
   and a prompt for an AI song generator based on this topic: ${promptText}."
   Do not include any other text, just the json. The json should be in the following format:
@@ -47,23 +48,36 @@ const generateText = async (
   }
 };
 
-const generateImage = async (prompt: string): Promise<string> => {
+type IGenerateImageFormat = "url" | "b64_json";
+type IGenerateImage = (
+  prompt: string,
+  format: IGenerateImageFormat
+) => Promise<string>;
+
+const generateImage: IGenerateImage = async (prompt, format = "url") => {
   try {
     const response = await openai.images.generate({
       model: "dall-e-3",
       prompt,
       n: 1,
       size: "1024x1024",
-      response_format: "url",
+      response_format: format,
     });
-    if (!response.data || !response.data[0] || !response.data[0].url) {
+    if (!response.data || !response.data[0] || !response.data[0][format]) {
       throw new Error("Failed to generate image");
     }
-    return response.data[0].url;
+    return response.data[0][format]!;
   } catch (error: any) {
     console.error("Error generating image with OpenAI:", error);
     throw new Error("Failed to generate image using OpenAI.");
   }
 };
 
-export { generateText, generateImage };
+const generateImageFile = async (prompt: string): Promise<string> => {
+  const imagePath = "./image.png";
+  const image_b64 = await generateImage(prompt, "b64_json");
+  fs.writeFileSync(imagePath, Buffer.from(image_b64, "base64"));
+  return imagePath;
+};
+
+export { generateImage, generateImageFile, generateText };

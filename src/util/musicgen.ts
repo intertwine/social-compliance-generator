@@ -1,5 +1,6 @@
-import { uploadStreamToS3 } from "./upload";
+import fs from "fs";
 import { WaveFile } from "wavefile";
+import { uploadStreamToS3 } from "./upload";
 
 const generateSongFileName = (prompt: string) => {
   const now = Math.floor(new Date().getTime() / 1000);
@@ -7,7 +8,7 @@ const generateSongFileName = (prompt: string) => {
   return `${baseName.toLowerCase().substring(0, 64)}.wav`;
 };
 
-const generateSong = async (prompt: string): Promise<string> => {
+const generateSong = async (prompt: string): Promise<Uint8Array> => {
   // @See https://huggingface.co/Xenova/musicgen-small
   try {
     const { AutoTokenizer, MusicgenForConditionalGeneration } = await import(
@@ -46,18 +47,30 @@ const generateSong = async (prompt: string): Promise<string> => {
       "32f",
       audio_values.data
     );
-    const songUrl = await uploadStreamToS3(
-      wav.toBuffer(),
-      "social-compliance-generator",
-      generateSongFileName(prompt)
-    );
-    console.info("Uploaded song to S3:", songUrl);
 
-    return songUrl;
+    return wav.toBuffer();
   } catch (error: any) {
     console.error("Error generating song:", error);
     throw new Error("Failed to generate song.");
   }
 };
 
-export { generateSong };
+const generateSongUrl = async (prompt: string): Promise<string> => {
+  const audioBuffer = await generateSong(prompt);
+  const songUrl = await uploadStreamToS3(
+    audioBuffer,
+    "social-compliance-generator",
+    generateSongFileName(prompt)
+  );
+  console.info("Uploaded song to S3:", songUrl);
+  return songUrl;
+};
+
+const generateSongFile = async (prompt: string): Promise<string> => {
+  const audioBuffer = await generateSong(prompt);
+  const songPath = "./song.wav";
+  fs.writeFileSync(songPath, audioBuffer);
+  return songPath;
+};
+
+export { generateSong, generateSongFile, generateSongUrl };
