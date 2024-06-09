@@ -54,6 +54,12 @@ Detailed instructions for each of these steps can be found in [README-AUTH.md](R
 
 ## Deploying the Project
 
+1. Set up a github action to deploy the project to trigger.dev.
+
+   - <https://trigger.dev/docs/v3/github-actions#how-to-add-trigger-access-token-in-github>
+
+2. Optionally, setup a schedule to run the task in trigger.dev.
+
 ## APIs Used
 
 - [Anthropic](https://www.anthropic.com/)

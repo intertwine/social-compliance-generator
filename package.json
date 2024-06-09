@@ -5,7 +5,9 @@
   "scripts": {
     "start": "npx trigger.dev@beta dev",
     "generate-types": "./generate-supabase-types.sh",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "deploy:trigger-prod": "npx trigger.dev@3.0.0-beta.36 deploy",
+    "deploy:trigger": "npx trigger.dev@3.0.0-beta.36 deploy --env staging"
   },
   "keywords": [],
   "author": "",

@@ -1,10 +1,9 @@
-import { task, logger } from "@trigger.dev/sdk/v3";
+import { logger, schedules } from "@trigger.dev/sdk/v3";
 import { generatePost } from "../generatePost";
 
-export const generate = task({
+export const generate = schedules.task({
   id: "social-compliance-generator",
-  run: async (payload: { message: string }) => {
-    logger.info(payload.message);
+  run: async (payload) => {
     const post = await generatePost();
     if (!post) {
       logger.error("Failed to generate post");
