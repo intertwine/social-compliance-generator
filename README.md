@@ -27,7 +27,9 @@ The generator uses Supabase Storage to store the generated music content prior t
 
 To get started with this project, follow these steps:
 
-### Account Setup
+### Prerequisites - Set up Accounts and Auth Tokens
+
+See [README-AUTH.md](README-AUTH.md) for instructions on how to generate authentication tokens for the social media platforms and APIs used in this project.
 
 1. Create a trigger.dev account and set up a v3 project.
 1. Create a Supabase account and storage bucket to store the generated content.
