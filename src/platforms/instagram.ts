@@ -1,6 +1,9 @@
-import axios from "axios";
+// import axios from "axios";
 import dotenv from "dotenv";
 dotenv.config();
+
+// NOTE: This is a nonfunctional placeholder for the Instagram platform
+// TODO: Implement Instagram platform
 
 const PLATFORM_NAME = "Instagram";
 const PLATFORM_ENDPOINT = "https://api.instagram.com/v1/media/upload";
@@ -12,23 +15,7 @@ const postTemplate = (
   imageUrl: string,
   songUrl: string
 ) => {
-  return `
-  {
-    "message": "${textContent}",
-    "attachment": {
-      "type": "image",
-      "payload": {
-        "url": "${imageUrl}"
-      }
-    },
-    "actions": [
-      {
-        "name": "song",
-        "link": "${songUrl}"
-      }
-    ]
-  }
-  `;
+  return "IMPLEMENT ME";
 };
 
 const createPost = async (

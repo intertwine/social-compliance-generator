@@ -1,6 +1,9 @@
-import axios from "axios";
+// import axios from "axios";
 import dotenv from "dotenv";
 dotenv.config();
+
+// NOTE: This is a nonfunctional placeholder for the Facebook platform
+// TODO: Implement Facebook platform
 
 const PLATFORM_NAME = "Facebook";
 const PLATFORM_ENDPOINT = "https://graph.facebook.com/v12.0/me/feed";
@@ -12,23 +15,7 @@ const postTemplate = (
   imageUrl: string,
   songUrl: string
 ) => {
-  return `
-  {
-    "message": "${textContent}",
-    "attachment": {
-      "type": "image",
-      "payload": {
-        "url": "${imageUrl}"
-      }
-    },
-    "actions": [
-      {
-        "name": "song",
-        "link": "${songUrl}"
-      }
-    ]
-  }
-  `;
+  return"IMPLEMENT ME";
 };
 
 const createPost = async (
