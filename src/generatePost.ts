@@ -6,6 +6,14 @@ import { generateSongFile } from "./util/musicgen";
 import { generateImageFile } from "./util/openai";
 import { generateVideoBuffer } from "./util/video";
 
+const POST_TAGS = ["AICreationOfTheWeek", "SocialComplianceGenerator"];
+const POST_LINKS = [
+  {
+    title: "AI Creation of the Week",
+    url: "https://intertwinesys.com/social-compliance-generator/",
+  },
+];
+
 const getRandomPrompt = (): string => {
   const prompts = JSON.parse(
     fs.readFileSync(path.resolve(__dirname, "../src/topics.json"), "utf8")
@@ -20,7 +28,12 @@ const generatePost = async (): Promise<boolean> => {
     const imageFilePath = await generateImageFile(imagePrompt);
     const songFilePath = await generateSongFile(songPrompt);
     const videoBuffer = await generateVideoBuffer(imageFilePath, songFilePath);
-    const xPostUrl = await createVideoPost(postContent, videoBuffer);
+    const xPostUrl = await createVideoPost(
+      postContent,
+      videoBuffer,
+      POST_TAGS,
+      POST_LINKS
+    );
 
     console.info(
       `Post generated and published successfully.\n

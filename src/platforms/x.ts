@@ -121,7 +121,30 @@ const getUserClient = async () => {
   return userClient;
 };
 
-const createVideoPost = async (content: string, videoBuffer: Buffer) => {
+type IPostLinks = {
+  title: string;
+  url: string;
+};
+
+const formatPostContent = (
+  content: string,
+  tags: string[] = [],
+  links: IPostLinks[] = []
+) => {
+  const formattedContent = content.replace(/\n/g, " ");
+  const formattedTags = tags.join(" #");
+  const formattedLinks = links
+    .map((link) => `${link.title}: ${link.url}`)
+    .join("\n");
+  return `${formattedContent} #${formattedTags}\n\n${formattedLinks}`;
+};
+
+const createVideoPost = async (
+  content: string,
+  videoBuffer: Buffer,
+  tags: string[],
+  links: IPostLinks[]
+) => {
   // @See: <https://github.com/PLhery/node-twitter-api-v2/issues/451#issuecomment-1900704325>
   try {
     const v1Client = await getV1UserClient();
@@ -135,7 +158,7 @@ const createVideoPost = async (content: string, videoBuffer: Buffer) => {
     });
 
     const createdTweet = await v2Client.v2.tweet({
-      text: content,
+      text: formatPostContent(content, tags, links),
       media: { media_ids: [mediaId] },
     });
 

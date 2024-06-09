@@ -1,5 +1,6 @@
 # TODO
 
+- [ ] Refactor secrets management to Infisical
 - [ ] Web version for users to generate content
 - [ ] Store generated content in database
 - [ ] Cross-post content to a website

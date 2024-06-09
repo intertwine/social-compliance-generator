@@ -21,7 +21,7 @@ The generator uses the following AI models:
 - OpenAI DALL-E - for image generation
 - Facebook(Xenova) MusicGen - for song generation
 
-The generator uses Supabase Storage to store the generated music content prior to uploading it to social media platforms.
+The generator uses FFMPEG to combine the generated image and audio into a video, and uploads it to social media.
 
 ## Getting Started
 
@@ -29,7 +29,8 @@ To get started with this project, follow these steps:
 
 ### Prerequisites - Set up Accounts and Auth Tokens
 
-See [README-AUTH.md](README-AUTH.md) for instructions on how to generate authentication tokens for the social media platforms and APIs used in this project.
+See [README-AUTH.md](README-AUTH.md) for instructions on how to generate authentication tokens for the
+social media platforms and APIs used in this project.
 
 1. Create a trigger.dev account and set up a v3 project.
 1. Create a Supabase account and storage bucket to store the generated content.
@@ -46,10 +47,12 @@ Detailed instructions for each of these steps can be found in [README-AUTH.md](R
 1. Install the project dependencies by running `npm install` in the project directory.
 1. Setup accounts and environment variables as detailed above.
 
-### Running the Project
+### Testing the Project Locally
 
 1. Run `npx trigger.dev@beta dev` in your project directory to start the development server.
 1. Visit your project dashboard (<https://cloud.trigger.dev/projects/v3/your-project-id>) to view and test your newly created tasks.
+
+## Deploying the Project
 
 ## APIs Used
 
