@@ -13,5 +13,5 @@ export const config: TriggerConfig = {
       randomize: true,
     },
   },
-  // dependenciesToBundle: [/@xenova/, "transformers.js#v3"],
+  dependenciesToBundle: [/@xenova/, "github:xenova/transformers.js#ec16c98cfdf78bb928fe50b2c7669cb7372df4c6"],
 };
