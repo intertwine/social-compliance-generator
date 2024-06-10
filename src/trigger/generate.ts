@@ -4,12 +4,12 @@ import { generatePost } from "../generatePost";
 export const generate = schedules.task({
   id: "social-compliance-generator",
   run: async (payload) => {
-    const post = await generatePost();
-    if (!post) {
-      logger.error("Failed to generate post");
-      return false;
+    try {
+      logger.info(`Generating post at: ${payload.timestamp}`);
+      await generatePost();
+      logger.info("Post generated successfully.");
+    } catch (error: any) {
+      logger.error("Failed to generate post:", error);
     }
-    logger.info(post.toString());
-    return post;
   },
 });

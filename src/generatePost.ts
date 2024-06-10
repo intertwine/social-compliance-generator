@@ -21,14 +21,20 @@ const getRandomPrompt = (): string => {
   return prompts[Math.floor(Math.random() * prompts.length)];
 };
 
-const generatePost = async (): Promise<boolean> => {
+const cleanupFiles = (files: string[]) => {
+  files.forEach((file) => {
+    fs.unlinkSync(file);
+  });
+};
+
+const generatePost = async (): Promise<void> => {
   try {
     const prompt = getRandomPrompt();
     const { postContent, imagePrompt, songPrompt } = await generateText(prompt);
     const imageFilePath = await generateImageFile(imagePrompt);
     const songFilePath = await generateSongFile(songPrompt);
     const videoBuffer = await generateVideoBuffer(imageFilePath, songFilePath);
-    const xPostUrl = await createVideoPost(
+    const xPostId = await createVideoPost(
       postContent,
       videoBuffer,
       POST_TAGS,
@@ -41,12 +47,12 @@ const generatePost = async (): Promise<boolean> => {
         Image Prompt: ${imagePrompt}\n
         Song Prompt: ${songPrompt}\n
         Post Content: ${postContent}\n
-        Post URL: ${xPostUrl}`
+        Post ID: ${xPostId}`
     );
-    return true;
+
+    cleanupFiles([imageFilePath, songFilePath]);
   } catch (error: any) {
     console.error("Error generating post:", error);
-    return false;
   }
 };
 

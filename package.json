@@ -1,7 +1,7 @@
 {
   "name": "social-compliance-generator",
   "version": "1.0.0",
-  "main": "src/index.js",
+  "main": "src/generatePost.ts",
   "scripts": {
     "start": "npx trigger.dev@beta dev",
     "generate-types": "./generate-supabase-types.sh",
@@ -10,27 +10,27 @@
     "deploy:trigger": "npx trigger.dev@3.0.0-beta.36 deploy --env staging"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
+  "author": "Bryan Young<bryan@intertwinesys.com>",
+  "license": "MIT",
+  "description": "Generates social media content and video using AI",
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.22.0",
-    "@aws-sdk/client-s3": "^3.592.0",
-    "@ffmpeg-installer/ffmpeg": "^1.1.0",
-    "@huggingface/inference": "^2.7.0",
-    "@supabase/supabase-js": "^2.43.4",
+    "@anthropic-ai/sdk": "0.22.0",
+    "@aws-sdk/client-s3": "3.592.0",
+    "@ffmpeg-installer/ffmpeg": "1.1.0",
+    "@huggingface/inference": "2.7.0",
+    "@supabase/supabase-js": "2.43.4",
     "@trigger.dev/sdk": "3.0.0-beta.36",
-    "@twitter-api-v2/plugin-token-refresher": "^1.0.0",
-    "@types/fluent-ffmpeg": "^2.1.24",
-    "@xenova/transformers": "github:xenova/transformers.js#v3",
-    "axios": "^1.7.2",
-    "dotenv": "^16.4.5",
-    "fluent-ffmpeg": "^2.1.3",
-    "openai": "^4.48.1",
-    "twitter-api-v2": "^1.17.1",
-    "wavefile": "^11.0.0"
+    "@twitter-api-v2/plugin-token-refresher": "1.0.0",
+    "@types/fluent-ffmpeg": "2.1.24",
+    "@xenova/transformers": "github:xenova/transformers.js#ec16c98cfdf78bb928fe50b2c7669cb7372df4c6",
+    "axios": "1.7.2",
+    "dotenv": "16.4.5",
+    "fluent-ffmpeg": "2.1.3",
+    "openai": "4.49.1",
+    "twitter-api-v2": "1.17.1",
+    "wavefile": "11.0.0"
   },
   "devDependencies": {
-    "typescript": "^5.4.5"
+    "typescript": "5.4.5"
   }
 }

@@ -74,7 +74,8 @@ const generateImage: IGenerateImage = async (prompt, format = "url") => {
 };
 
 const generateImageFile = async (prompt: string): Promise<string> => {
-  const imagePath = "./image.png";
+  const now = Math.floor(new Date().getTime() / 1000);
+  const imagePath = `./image-${now}.jpg`;
   const image_b64 = await generateImage(prompt, "b64_json");
   fs.writeFileSync(imagePath, Buffer.from(image_b64, "base64"));
   return imagePath;

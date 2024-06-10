@@ -67,8 +67,9 @@ const generateSongUrl = async (prompt: string): Promise<string> => {
 };
 
 const generateSongFile = async (prompt: string): Promise<string> => {
+  const now = Math.floor(new Date().getTime() / 1000);
   const audioBuffer = await generateSong(prompt);
-  const songPath = "./song.wav";
+  const songPath = `./song-${now}.wav`;
   fs.writeFileSync(songPath, audioBuffer);
   return songPath;
 };
