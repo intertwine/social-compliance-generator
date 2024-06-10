@@ -12,7 +12,7 @@ const generateSong = async (prompt: string): Promise<Uint8Array> => {
   // @See https://huggingface.co/Xenova/musicgen-small
   try {
     const { AutoTokenizer, MusicgenForConditionalGeneration } = await import(
-      "@xenova/transformers"
+      "@intertwine/transformers" // "@xenova/transformers.js#v3" forked here for stable v3 access
     );
 
     const tokenizer = await AutoTokenizer.from_pretrained(

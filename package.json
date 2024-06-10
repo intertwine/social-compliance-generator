@@ -22,7 +22,7 @@
     "@trigger.dev/sdk": "3.0.0-beta.36",
     "@twitter-api-v2/plugin-token-refresher": "1.0.0",
     "@types/fluent-ffmpeg": "2.1.24",
-    "@xenova/transformers": "github:xenova/transformers.js#ec16c98cfdf78bb928fe50b2c7669cb7372df4c6",
+    "@intertwine/transformers": "github:intertwine/transformers.js",
     "axios": "1.7.2",
     "dotenv": "16.4.5",
     "fluent-ffmpeg": "2.1.3",

@@ -1,7 +1,7 @@
 // types/xenova-transformers.d.ts
 type Tokenizer = (prompt: string) => any;
 
-declare module "@xenova/transformers" {
+declare module "@intertwine/transformers" {
   export class AutoTokenizer {
     static from_pretrained(modelName: string): Promise<Tokenizer>;
   }
