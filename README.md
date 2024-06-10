@@ -1,6 +1,6 @@
 # Social Compliance Generator AI
 
-This project is part of Bryan Young's [AI Creation of the Week Series](https://intertwinesys.com/) - Week 1.
+This project is part of Bryan Young's [AI Drop of the Week](https://intertwinesys.com/) - Week 1.
 
 ## Overview
 
@@ -12,7 +12,7 @@ and it gives me a chance to play with various AI APIs and models.
 
 I'm open sourcing the project so you can adapt it and become socially compliant too!
 
-Like all my Creation of the Week projects, if it seems like the start of a fun new paid service you'd like to use,
+Like all my AI Drop of the Week projects, if it seems like the start of a fun new paid service you'd like to use,
 let me know and we will find a way to charge you for it.
 
 The generator uses the following AI models:

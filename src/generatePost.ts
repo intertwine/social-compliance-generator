@@ -1,25 +1,18 @@
 import fs from "fs";
-import path from "path";
 import { createVideoPost } from "./platforms/x";
 import { generateText } from "./util/claude";
 import { generateSongFile } from "./util/musicgen";
 import { generateImageFile } from "./util/openai";
+import { getRandomPrompt } from "./util/topics";
 import { generateVideoBuffer } from "./util/video";
 
-const POST_TAGS = ["AICreationOfTheWeek", "SocialComplianceGenerator"];
+const POST_TAGS = ["AIDropOfTheWeek", "SocialComplianceGenerator"];
 const POST_LINKS = [
   {
-    title: "AI Creation of the Week",
-    url: "https://intertwinesys.com/social-compliance-generator/",
+    title: "Intertwine AI Drop of the Week",
+    url: "https://aidrops.intertwinesys.com/drop/1",
   },
 ];
-
-const getRandomPrompt = (): string => {
-  const prompts = JSON.parse(
-    fs.readFileSync(path.resolve(__dirname, "../src/topics.json"), "utf8")
-  ).topics;
-  return prompts[Math.floor(Math.random() * prompts.length)];
-};
 
 const cleanupFiles = (files: string[]) => {
   files.forEach((file) => {

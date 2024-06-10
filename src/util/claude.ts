@@ -12,18 +12,18 @@ const generateText = async (
   promptText: string
 ): Promise<generateTextResponse> => {
   const prompt = `You are a helpful assistant that generates json based on a prompt.
-  The prompt is: "Generate a short facebook post,a prompt for an AI image generator,
+  The prompt is: "Generate a short twitter post, a prompt for an AI image generator,
   and a prompt for an AI song generator based on this topic: ${promptText}."
   Do not include any other text, just the json. The json should be in the following format:
   {
-    "postContent": "The content of the post",
+    "postContent": "The content of the post, no longer than 200 characters",
     "imagePrompt": "The prompt for the image generator",
     "songPrompt": "The prompt for the song generator"
   }`;
   try {
     const completion = await anthropic.messages.create({
       model: "claude-3-haiku-20240307",
-      max_tokens: 150,
+      max_tokens: 500,
       messages: [
         {
           role: "user",
