@@ -1,6 +1,8 @@
 # Social Compliance Generator AI
 
-This project is part of Bryan Young's [AI Drop of the Week](https://intertwinesys.com/) - Week 1.
+This project is part of Bryan Young's [AI Drop of the Week](https://aidrops.intertwinesys.com/drop/1): Week 1.
+
+This bot posts four times a day to X.com; [see the results here.](https://x.com/intertwine88038)
 
 ## Overview
 
@@ -15,15 +17,21 @@ I'm open sourcing the project so you can adapt it and become socially compliant 
 Like all my AI Drop of the Week projects, if it seems like the start of a fun new paid service you'd like to use,
 let me know and we will find a way to charge you for it.
 
-The generator uses the following AI models:
+Paid susbscribers to the [AI Drop of the Week Newsletter](https://aidrops.intertwinesys.com/subscribe) can access
+the live web version of this bot to generate your own custom content.
 
-- Anthropic Claude - for text generation
-- OpenAI DALL-E - for image generation
-- Facebook(Xenova) MusicGen - for song generation
+How it works:
 
-The generator uses FFMPEG to combine the generated image and audio into a video, and uploads it to social media.
+A node.js function is hosted trigger.dev that runs every six hours. Upon invocation, it:
 
-## Getting Started
+1. [Chooses a random topic](./src/util/topics.ts) from a list of topics
+1. [Calls Claude Haiku via API](./src/util/claude.ts) to generate text for a tweet, and prompts for an image and a song.
+1. [Passes the image prompt to OpenAI DALL-E](./src/util/openai.ts) to generate an image.
+1. [Loads the Meta/Musicgen model from HuggingFace](./src/util/musicgen.ts) and uses it to generate a song based on the song prompt.
+1. Uses FFMPEG to [combine the generated image and audio into a video](./src/util/video.ts), and
+1. [uploads it](./src/platforms/x.ts) a [bot account on X.com](https://x.com/intertwine88038).
+
+## How To Run Your Own Social Compliance Generator
 
 To get started with this project, follow these steps:
 
@@ -60,14 +68,4 @@ Detailed instructions for each of these steps can be found in [README-AUTH.md](R
 
 2. Optionally, setup a schedule to run the task in trigger.dev.
 
-## APIs Used
-
-- [Anthropic](https://www.anthropic.com/)
-- [OpenAI](https://openai.com/)
-- [MusicGen](https://huggingface.co/Xenova/musicgen-small)
-- [Supabase](https://supabase.com/)
-- [AWS S3](https://aws.amazon.com/s3/) - for Supabase storage access
-
-## License
-
-This project is licensed under the MIT License.
+For more fun AI projects and tools, subscribe to the [AI Drop of the Week Newsletter](https://aidrops.intertwinesys.com/subscribe).
