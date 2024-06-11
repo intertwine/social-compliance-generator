@@ -56,6 +56,7 @@ type IGenerateImage = (
 
 const generateImage: IGenerateImage = async (prompt, format = "url") => {
   try {
+    console.info("Calling OpenAI image generation API...");
     const response = await openai.images.generate({
       model: "dall-e-3",
       prompt,
@@ -63,6 +64,7 @@ const generateImage: IGenerateImage = async (prompt, format = "url") => {
       size: "1024x1024",
       response_format: format,
     });
+    console.debug("Image generation response:", response);
     if (!response.data || !response.data[0] || !response.data[0][format]) {
       throw new Error("Failed to generate image");
     }
@@ -74,10 +76,13 @@ const generateImage: IGenerateImage = async (prompt, format = "url") => {
 };
 
 const generateImageFile = async (prompt: string): Promise<string> => {
+  console.info("Generating image file...");
   const now = Math.floor(new Date().getTime() / 1000);
   const imagePath = `./image-${now}.jpg`;
   const image_b64 = await generateImage(prompt, "b64_json");
+  console.info("Image file path:", imagePath);
   fs.writeFileSync(imagePath, Buffer.from(image_b64, "base64"));
+  console.info("Image file written to disk.");
   return imagePath;
 };
 

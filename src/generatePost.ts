@@ -5,6 +5,7 @@ import { generateSongFile } from "./util/musicgen";
 import { generateImageFile } from "./util/openai";
 import { getRandomPrompt } from "./util/topics";
 import { generateVideoBuffer } from "./util/video";
+import { logFSInfo } from "./util/filesystem";
 
 const POST_TAGS = ["AIDropOfTheWeek", "SocialComplianceGenerator"];
 const POST_LINKS = [
@@ -21,7 +22,10 @@ const cleanupFiles = (files: string[]) => {
 };
 
 const generatePost = async (): Promise<void> => {
+  console.info("Log info from generatePost:");
+  logFSInfo();
   try {
+    console.info("Generating post...");
     const prompt = getRandomPrompt();
     const { postContent, imagePrompt, songPrompt } = await generateText(prompt);
     const imageFilePath = await generateImageFile(imagePrompt);
@@ -43,6 +47,7 @@ const generatePost = async (): Promise<void> => {
         Post ID: ${xPostId}`
     );
 
+    console.info("Cleaning up files...");
     cleanupFiles([imageFilePath, songFilePath]);
   } catch (error: any) {
     console.error("Error generating post:", error);
@@ -50,7 +55,3 @@ const generatePost = async (): Promise<void> => {
 };
 
 export { generatePost };
-
-if (require.main === module) {
-  generatePost();
-}

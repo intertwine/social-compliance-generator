@@ -147,16 +147,19 @@ const createVideoPost = async (
 ) => {
   // @See: <https://github.com/PLhery/node-twitter-api-v2/issues/451#issuecomment-1900704325>
   try {
+    console.info("Creating video post...");
     const v1Client = await getV1UserClient();
     const v2Client = await getUserClient();
 
     const additionalOwners = (await v2Client.currentUserV2()).data.id;
 
+    console.info("Uploading X video media...");
     const mediaId = await v1Client.v1.uploadMedia(videoBuffer, {
       mimeType: "video/mp4",
       additionalOwners,
     });
 
+    console.info("Creating X post...");
     const createdTweet = await v2Client.v2.tweet({
       text: formatPostContent(content, tags, links),
       media: { media_ids: [mediaId] },

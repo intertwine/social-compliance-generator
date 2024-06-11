@@ -2,6 +2,7 @@ import { path as ffmpegPath } from "@ffmpeg-installer/ffmpeg";
 import { spawn } from "child_process";
 import fs from "fs";
 import path from "path";
+import { getCWD } from "./filesystem";
 import { uploadStreamToS3 } from "./upload";
 
 const generateVideoFileName = (prompt: string) => {
@@ -20,10 +21,11 @@ const generateVideo = async (
     console.info("Song file:", songFilePath);
 
     const tempOutputPath = path.join(__dirname, "temp_video.mp4");
-    const fontPath = path.join(
-      __dirname,
-      "../src/fonts/Roboto/Roboto-Regular.ttf"
-    );
+    const fontPath =
+      getCWD() === "/app" // Running on trigger.dev
+        ? path.join(__dirname, "src/fonts/Roboto/Roboto-Regular.ttf")
+        : path.join(__dirname, "../src/fonts/Roboto/Roboto-Regular.ttf");
+
     const overlayText = `@intertwineai - Social Compliance Generator`;
 
     const ffmpegProcess = spawn(ffmpegPath, [
@@ -89,7 +91,10 @@ const generateVideoUrl = async (
   imageFilePath: string,
   songFilePath: string
 ): Promise<string> => {
+  console.info("Generating video URL...");
   const videoBuffer = await generateVideoBuffer(imageFilePath, songFilePath);
+  console.info("Video buffer generated.");
+  console.info("Video buffer length:", videoBuffer.length);
   const videoUrl = await uploadStreamToS3(
     videoBuffer,
     "social-compliance-generator",
@@ -99,4 +104,4 @@ const generateVideoUrl = async (
   return videoUrl;
 };
 
-export { generateVideo, generateVideoUrl, generateVideoBuffer };
+export { generateVideo, generateVideoBuffer, generateVideoUrl };

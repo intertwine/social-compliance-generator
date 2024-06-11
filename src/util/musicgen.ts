@@ -11,13 +11,16 @@ const generateSongFileName = (prompt: string) => {
 const generateSong = async (prompt: string): Promise<Uint8Array> => {
   // @See https://huggingface.co/Xenova/musicgen-small
   try {
+    console.info("importing transformers.js");
     const { AutoTokenizer, MusicgenForConditionalGeneration } = await import(
-      "transformers.js" // "@xenova/transformers.js#v3" forked here for stable v3 access
+      "@intertwine/transformers.js" // "@xenova/transformers.js#v3" forked here for stable v3 access
     );
 
     const tokenizer = await AutoTokenizer.from_pretrained(
       "Xenova/musicgen-small"
     );
+    console.info("Tokenizer loaded.");
+
     const model = await MusicgenForConditionalGeneration.from_pretrained(
       "Xenova/musicgen-small",
       {
@@ -28,6 +31,8 @@ const generateSong = async (prompt: string): Promise<Uint8Array> => {
         },
       }
     );
+    console.info("Model loaded.");
+
     const inputs = tokenizer(prompt);
     const audio_values = await model.generate({
       ...inputs,
@@ -67,10 +72,13 @@ const generateSongUrl = async (prompt: string): Promise<string> => {
 };
 
 const generateSongFile = async (prompt: string): Promise<string> => {
+  console.info("Generating song file...");
   const now = Math.floor(new Date().getTime() / 1000);
   const audioBuffer = await generateSong(prompt);
   const songPath = `./song-${now}.wav`;
+  console.info("Song file path:", songPath);
   fs.writeFileSync(songPath, audioBuffer);
+  console.info("Song file written to disk.");
   return songPath;
 };
 
