@@ -7,11 +7,11 @@ import { getRandomPrompt } from "./util/topics";
 import { generateVideoBuffer } from "./util/video";
 import { logFSInfo } from "./util/filesystem";
 
-const POST_TAGS = ["AIDropOfTheWeek", "SocialComplianceGenerator"];
+const POST_TAGS = ["AIDropOfTheWeek", "CodeAndContext"];
 const POST_LINKS = [
   {
-    title: "Intertwine AI Drop of the Week",
-    url: "https://aidrops.intertwinesys.com/drop/1",
+    title: "Code & Context AI Drop of the Week",
+    url: "https://codeandcontext.substack.com/p/ai-drop-social-compliance-generator",
   },
 ];
 
