@@ -6,8 +6,8 @@
     "start": "npx trigger.dev@beta dev",
     "generate-types": "./generate-supabase-types.sh",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "deploy:trigger-prod": "npx trigger.dev@3.0.0-beta.36 deploy",
-    "deploy:trigger": "npx trigger.dev@3.0.0-beta.36 deploy --env staging"
+    "deploy:trigger-prod": "npx trigger.dev@3.0.0-beta.40 deploy",
+    "deploy:trigger": "npx trigger.dev@3.0.0-beta.40 deploy --env staging"
   },
   "keywords": [],
   "author": "Bryan Young<bryan@intertwinesys.com>",
@@ -20,7 +20,7 @@
     "@huggingface/inference": "2.7.0",
     "@intertwine/transformers.js": "^3.0.0",
     "@supabase/supabase-js": "2.43.4",
-    "@trigger.dev/sdk": "3.0.0-beta.36",
+    "@trigger.dev/sdk": "3.0.0-beta.40",
     "@twitter-api-v2/plugin-token-refresher": "1.0.0",
     "@types/fluent-ffmpeg": "2.1.24",
     "axios": "1.7.2",
