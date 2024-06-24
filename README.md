@@ -1,8 +1,11 @@
+![Static Badge](https://img.shields.io/badge/Code_%26_Context-Exclusive-2980B9?labelColor=E67E22)
+![Static Badge](https://img.shields.io/badge/AI_Drop-Week_1-2C3E50?labelColor=1ABC9C)
+
 # Social Compliance Generator AI
 
-This project is part of Bryan Young's [AI Drop of the Week](https://aidrops.intertwinesys.com/drop/1): Week 1.
+This project is part of [Code & Context](https://codeandcontext.substack.com)'s [AI Drop of the Week](https://codeandcontext.substack.com/p/ai-drop-social-compliance-generator).
 
-This bot posts four times a day to X.com; [see the results here.](https://x.com/intertwine88038)
+This bot posts four times a day to X.com. [See the results here.](https://x.com/intertwine88038)
 
 ## Overview
 
@@ -17,10 +20,11 @@ I'm open sourcing the project so you can adapt it and become socially compliant 
 Like all my AI Drop of the Week projects, if it seems like the start of a fun new paid service you'd like to use,
 let me know and we will find a way to charge you for it.
 
-Paid susbscribers to the [AI Drop of the Week Newsletter](https://aidrops.intertwinesys.com/subscribe) can access
-the live web version of this bot to generate your own custom content.
+Paid susbscribers to the Code & Context [AI Drop of the Week](https://codeandcontext.substack.com/p/building-in-public-introducing-ai) can access the live web version of this bot to generate your own custom content.
 
-How it works:
+<img width="605" alt="Screenshot 2024-06-24 at 12 11 50 AM" src="https://github.com/intertwine/social-compliance-generator/assets/27167/4d2b6eba-0d31-41da-8126-7db63bddb68c">
+
+## How it works:
 
 A node.js function is hosted trigger.dev that runs every six hours. Upon invocation, it:
 
@@ -68,4 +72,4 @@ Detailed instructions for each of these steps can be found in [README-AUTH.md](R
 
 2. Optionally, setup a schedule to run the task in trigger.dev.
 
-For more fun AI projects and tools, subscribe to the [AI Drop of the Week Newsletter](https://aidrops.intertwinesys.com/subscribe).
+For more fun AI projects and tools, subscribe to the [AI Drop of the Week Newsletter](https://codeandcontext.substack.com/p/building-in-public-introducing-ai).
