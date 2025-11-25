@@ -7,10 +7,51 @@ import { GoogleGenAI, Modality } from "@google/genai";
 import fs from "fs";
 import path from "path";
 
-const MODEL_ID = "gemini-3-pro-image-preview";
+const PRIMARY_MODEL = "gemini-3-pro-image-preview";
+const FALLBACK_MODEL = "gemini-2.5-flash-image";
+
+interface ImageModel {
+  id: string;
+  name: string;
+}
+
+const IMAGE_MODELS: ImageModel[] = [
+  { id: PRIMARY_MODEL, name: "Nano Banana Pro" },
+  { id: FALLBACK_MODEL, name: "Gemini 2.5 Flash" },
+];
 
 /**
- * Generate an image using Google's Nano Banana Pro model
+ * Try to generate an image with a specific model
+ * Returns the response or throws an error
+ */
+async function tryGenerateWithModel(
+  ai: GoogleGenAI,
+  modelId: string,
+  prompt: string
+): Promise<any> {
+  const response = await ai.models.generateContent({
+    model: modelId,
+    contents: prompt,
+    config: {
+      responseModalities: [Modality.IMAGE, Modality.TEXT],
+    },
+  });
+  return response;
+}
+
+/**
+ * Check if an error is a rate limit error (429)
+ */
+function isRateLimitError(error: unknown): boolean {
+  if (error instanceof Error) {
+    return error.message.includes("429") || error.message.includes("RESOURCE_EXHAUSTED");
+  }
+  return false;
+}
+
+/**
+ * Generate an image using Google's image generation models
+ * Automatically falls back to alternative models on rate limit errors
  * Returns the path to the generated image file
  */
 export async function generateImage(prompt: string): Promise<string> {
@@ -20,43 +61,57 @@ export async function generateImage(prompt: string): Promise<string> {
     throw new Error("GOOGLE_API_KEY environment variable is required");
   }
 
-  console.info(`Generating image with Nano Banana Pro: "${prompt.substring(0, 100)}..."`);
-
   const ai = new GoogleGenAI({ apiKey });
+  let lastError: Error | null = null;
 
-  const response = await ai.models.generateContent({
-    model: MODEL_ID,
-    contents: prompt,
-    config: {
-      responseModalities: [Modality.IMAGE, Modality.TEXT],
-    },
-  });
+  for (const model of IMAGE_MODELS) {
+    console.info(`Generating image with ${model.name}: "${prompt.substring(0, 100)}..."`);
 
-  // Extract image from response
-  const parts = response.candidates?.[0]?.content?.parts;
+    try {
+      const response = await tryGenerateWithModel(ai, model.id, prompt);
 
-  if (!parts || parts.length === 0) {
-    throw new Error("No content returned from Nano Banana Pro");
+      // Extract image from response
+      const parts = response.candidates?.[0]?.content?.parts;
+
+      if (!parts || parts.length === 0) {
+        throw new Error(`No content returned from ${model.name}`);
+      }
+
+      // Find the image part
+      const imagePart = parts.find((part: any) => part.inlineData?.mimeType?.startsWith("image/"));
+
+      if (!imagePart || !imagePart.inlineData || !imagePart.inlineData.data) {
+        throw new Error(`No image data returned from ${model.name}`);
+      }
+
+      // Save image to temporary file
+      const timestamp = Date.now();
+      const extension = imagePart.inlineData.mimeType === "image/png" ? "png" : "jpg";
+      const imagePath = path.join(process.cwd(), `generated-image-${timestamp}.${extension}`);
+
+      const imageBuffer = Uint8Array.from(Buffer.from(imagePart.inlineData.data as string, "base64"));
+      fs.writeFileSync(imagePath, imageBuffer);
+
+      console.info(`Image saved to: ${imagePath}`);
+
+      return imagePath;
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+
+      if (isRateLimitError(error)) {
+        console.warn(`Rate limited on ${model.name}, trying fallback model...`);
+        continue;
+      }
+
+      // For non-rate-limit errors, throw immediately
+      throw error;
+    }
   }
 
-  // Find the image part
-  const imagePart = parts.find((part: any) => part.inlineData?.mimeType?.startsWith("image/"));
-
-  if (!imagePart || !imagePart.inlineData || !imagePart.inlineData.data) {
-    throw new Error("No image data returned from Nano Banana Pro");
-  }
-
-  // Save image to temporary file
-  const timestamp = Date.now();
-  const extension = imagePart.inlineData.mimeType === "image/png" ? "png" : "jpg";
-  const imagePath = path.join(process.cwd(), `generated-image-${timestamp}.${extension}`);
-
-  const imageBuffer = Buffer.from(imagePart.inlineData.data as string, "base64");
-  fs.writeFileSync(imagePath, imageBuffer);
-
-  console.info(`Image saved to: ${imagePath}`);
-
-  return imagePath;
+  // All models failed with rate limits
+  throw new Error(
+    `All image generation models are rate limited. Last error: ${lastError?.message}`
+  );
 }
 
 /**
