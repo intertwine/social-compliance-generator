@@ -1,36 +1,31 @@
 {
   "name": "social-compliance-generator",
-  "version": "1.0.0",
-  "main": "src/generatePost.ts",
+  "version": "2.0.0",
+  "main": "dist/index.js",
   "scripts": {
-    "start": "npx trigger.dev@beta dev",
-    "generate-types": "./generate-supabase-types.sh",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "deploy:trigger-prod": "npx trigger.dev@3.0.0-beta.40 deploy",
-    "deploy:trigger": "npx trigger.dev@3.0.0-beta.40 deploy --env staging"
+    "build": "tsc",
+    "generate": "npm run build && node dist/index.js",
+    "dev": "ts-node src/index.ts",
+    "generate-types": "./generate-supabase-types.sh"
   },
   "keywords": [],
   "author": "Bryan Young<bryan@intertwinesys.com>",
   "license": "MIT",
-  "description": "Generates social media content and video using AI",
+  "description": "Generates social media content and video using AI - Posts AI news with generated videos to X",
   "dependencies": {
-    "@anthropic-ai/sdk": "0.22.0",
-    "@aws-sdk/client-s3": "3.592.0",
-    "@ffmpeg-installer/ffmpeg": "1.1.0",
-    "@huggingface/inference": "2.7.0",
-    "@intertwine/transformers.js": "^3.0.0",
-    "@supabase/supabase-js": "2.43.4",
-    "@trigger.dev/sdk": "3.0.0-beta.40",
-    "@twitter-api-v2/plugin-token-refresher": "1.0.0",
-    "@types/fluent-ffmpeg": "2.1.24",
-    "axios": "1.7.2",
-    "dotenv": "16.4.5",
-    "fluent-ffmpeg": "2.1.3",
-    "openai": "4.49.1",
-    "twitter-api-v2": "1.17.1",
-    "wavefile": "11.0.0"
+    "@google/genai": "^0.14.0",
+    "@supabase/supabase-js": "^2.46.0",
+    "@twitter-api-v2/plugin-token-refresher": "^1.0.0",
+    "dotenv": "^16.4.5",
+    "openai": "^4.70.0",
+    "twitter-api-v2": "^1.17.2"
   },
   "devDependencies": {
-    "typescript": "5.4.5"
+    "@types/node": "^22.9.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.6.3"
+  },
+  "engines": {
+    "node": ">=20.0.0"
   }
 }

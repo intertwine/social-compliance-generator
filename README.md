@@ -1,7 +1,7 @@
 ![Static Badge](https://img.shields.io/badge/Code_%26_Context-Exclusive-2980B9?labelColor=E67E22)
 ![Static Badge](https://img.shields.io/badge/AI_Drop-Week_1-2C3E50?labelColor=1ABC9C)
 
-# Social Compliance Generator AI
+# Social Compliance Generator v2.0
 
 This project is part of [Code & Context](https://codeandcontext.substack.com)'s [AI Drop of the Week](https://codeandcontext.substack.com/p/ai-drop-social-compliance-generator).
 
@@ -17,59 +17,165 @@ and it gives me a chance to play with various AI APIs and models.
 
 I'm open sourcing the project so you can adapt it and become socially compliant too!
 
-Like all my AI Drop of the Week projects, if it seems like the start of a fun new paid service you'd like to use,
-let me know and we will find a way to charge you for it.
+## What's New in v2.0
 
-Paid susbscribers to the Code & Context [AI Drop of the Week](https://codeandcontext.substack.com/p/building-in-public-introducing-ai) can access the live web version of this bot to generate your own custom content.
+This version has been completely modernized with 2025 AI tools:
 
-<img width="605" alt="Screenshot 2024-06-24 at 12 11 50 AM" src="https://github.com/intertwine/social-compliance-generator/assets/27167/4d2b6eba-0d31-41da-8126-7db63bddb68c">
+| Component | v1.0 (2024) | v2.0 (2025) |
+|-----------|-------------|-------------|
+| **Scheduler** | Trigger.dev | GitHub Actions (cron) |
+| **Content Source** | Random topic list | Live AI news search (Tavily) |
+| **LLM** | Claude Haiku (hardcoded) | OpenRouter (configurable) |
+| **Image Generation** | OpenAI DALL-E 3 | Google Nano Banana Pro |
+| **Audio Generation** | HuggingFace MusicGen | Built into Sora video |
+| **Video Generation** | FFmpeg (image + audio) | OpenAI Sora 2 |
+| **X API** | v1.1 + v2 hybrid | OAuth 2.0 only |
 
-## How it works:
+## How it Works
 
-A node.js function is hosted trigger.dev that runs every six hours. Upon invocation, it:
+A GitHub Actions workflow runs 4 times daily. Upon invocation, it:
 
-1. [Chooses a random topic](./src/util/topics.ts) from a list of topics
-1. [Calls Claude Haiku via API](./src/util/claude.ts) to generate text for a tweet, and prompts for an image and a song.
-1. [Passes the image prompt to OpenAI DALL-E](./src/util/openai.ts) to generate an image.
-1. [Loads the Meta/Musicgen model from HuggingFace](./src/util/musicgen.ts) and uses it to generate a song based on the song prompt.
-1. Uses FFMPEG to [combine the generated image and audio into a video](./src/util/video.ts), and
-1. [uploads it](./src/platforms/x.ts) a [bot account on X.com](https://x.com/intertwine88038).
+1. **Searches for AI news** using [Tavily API](https://tavily.com/) to find the latest AI/ML news
+2. **Generates content** using [OpenRouter](https://openrouter.ai/) (configurable LLM) to select the most interesting topic and write a post
+3. **Creates an image** using [Google Nano Banana Pro](https://blog.google/technology/ai/nano-banana-pro/) (Gemini 3 Pro Image)
+4. **Generates a video** using [OpenAI Sora 2](https://platform.openai.com/docs/guides/video-generation) from the image with synchronized audio
+5. **Posts to X** using the [X API v2](https://developer.twitter.com/en/docs/twitter-api) with OAuth 2.0
 
-## How To Run Your Own Social Compliance Generator
+```
+Tavily (AI news) → OpenRouter LLM (content) → Nano Banana Pro (image)
+                                                      ↓
+                    X API v2 (post) ← Sora 2 (video with audio)
+```
 
-To get started with this project, follow these steps:
+## Prerequisites
 
-### Prerequisites - Set up Accounts and Auth Tokens
+You'll need accounts and API keys for:
 
-See [README-AUTH.md](README-AUTH.md) for instructions on how to generate authentication tokens for the
-social media platforms and APIs used in this project.
+1. **[OpenRouter](https://openrouter.ai/)** - LLM access (supports 200+ models)
+2. **[Tavily](https://tavily.com/)** - AI-powered web search
+3. **[Google AI Studio](https://aistudio.google.com/)** - Nano Banana Pro image generation
+4. **[OpenAI Platform](https://platform.openai.com/)** - Sora 2 video generation (requires API access)
+5. **[X Developer Portal](https://developer.twitter.com/)** - OAuth 2.0 credentials
+6. **[Supabase](https://supabase.com/)** - Token storage for OAuth refresh
 
-1. Create a trigger.dev account and set up a v3 project.
-1. Create a Supabase account and storage bucket to store the generated content.
-1. Create an Anthropic account and set up an API key for Claude.
-1. Create an OpenAI account and set up an API key for DALL-E.
-1. Create a Hugging Face account and set up an API key for Facebook/MusicGen.
-1. Create a X.com developer account and separate bot account and set up access tokens.
+See [README-AUTH.md](README-AUTH.md) for detailed setup instructions.
 
-Detailed instructions for each of these steps can be found in [README-AUTH.md](README-AUTH.md).
+## Quick Start
 
-### Project Setup
+### 1. Clone and Install
 
-1. Clone the repository to your local machine.
-1. Install the project dependencies by running `npm install` in the project directory.
-1. Setup accounts and environment variables as detailed above.
+```bash
+git clone https://github.com/intertwine/social-compliance-generator.git
+cd social-compliance-generator
+npm install
+```
 
-### Testing the Project Locally
+### 2. Configure Environment
 
-1. Run `npx trigger.dev@beta dev` in your project directory to start the development server.
-1. Visit your project dashboard (<https://cloud.trigger.dev/projects/v3/your-project-id>) to view and test your newly created tasks.
+```bash
+cp .env.example .env
+# Edit .env with your API keys
+```
 
-## Deploying the Project
+### 3. Test Locally
 
-1. Set up a github action to deploy the project to trigger.dev.
+```bash
+npm run generate
+```
 
-   - <https://trigger.dev/docs/v3/github-actions#how-to-add-trigger-access-token-in-github>
+### 4. Deploy to GitHub Actions
 
-2. Optionally, setup a schedule to run the task in trigger.dev.
+1. Go to your repository's **Settings → Secrets and variables → Actions**
+2. Add the following secrets:
+   - `OPENROUTER_API_KEY`
+   - `OPENROUTER_MODEL` (optional, defaults to `anthropic/claude-sonnet-4.5-20250929`)
+   - `TAVILY_API_KEY`
+   - `GOOGLE_API_KEY`
+   - `OPENAI_API_KEY`
+   - `X_API_CLIENT_ID`
+   - `X_API_CLIENT_SECRET`
+   - `X_API_ACCESS_TOKEN`
+   - `X_API_REFRESH_TOKEN`
+   - `SUPABASE_URL`
+   - `SUPABASE_KEY`
+
+3. The workflow will run automatically at 6am, 12pm, 6pm, and midnight UTC
+4. You can also trigger it manually from the **Actions** tab
+
+## Project Structure
+
+```
+social-compliance-generator/
+├── .github/workflows/
+│   └── generate-post.yml      # Cron-triggered GitHub Action
+├── src/
+│   ├── index.ts               # Main orchestration
+│   └── services/
+│       ├── search.ts          # Tavily web search
+│       ├── llm.ts             # OpenRouter LLM
+│       ├── image.ts           # Google Nano Banana Pro
+│       ├── video.ts           # OpenAI Sora 2
+│       ├── x.ts               # X API posting
+│       └── supabase.ts        # Token storage
+├── .env.example               # Environment template
+├── package.json
+└── tsconfig.json
+```
+
+## Customization
+
+### Change the LLM Model
+
+Set `OPENROUTER_MODEL` in your environment to any model from [OpenRouter's catalog](https://openrouter.ai/models):
+
+```bash
+OPENROUTER_MODEL=openai/gpt-4o
+OPENROUTER_MODEL=meta-llama/llama-3.1-70b-instruct
+OPENROUTER_MODEL=google/gemini-pro-1.5
+```
+
+### Change Post Frequency
+
+Edit `.github/workflows/generate-post.yml` and modify the cron schedule:
+
+```yaml
+schedule:
+  - cron: '0 */6 * * *'  # Every 6 hours
+  - cron: '0 9 * * *'    # Once daily at 9am UTC
+```
+
+### Customize Post Tags
+
+Edit `src/services/x.ts` to change the hashtags and links:
+
+```typescript
+const POST_TAGS = ["YourTag1", "YourTag2"];
+const POST_LINKS = [
+  { title: "Your Link", url: "https://your-url.com" }
+];
+```
+
+## Troubleshooting
+
+### Video generation fails
+
+The Sora 2 API requires explicit invitation from OpenAI. If video generation fails, the system will automatically fall back to posting an image-only post.
+
+### Token refresh errors
+
+Ensure your Supabase `xrefresh` table exists with columns `id` (int) and `token` (text). The initial OAuth tokens should be set in your environment variables.
+
+### Rate limits
+
+OpenRouter and other APIs have rate limits. If you're hitting limits, consider:
+- Reducing post frequency
+- Using a different LLM model
+- Adding retry logic with exponential backoff
+
+## License
+
+MIT
+
+---
 
 For more fun AI projects and tools, subscribe to the [AI Drop of the Week Newsletter](https://codeandcontext.substack.com/p/building-in-public-introducing-ai).
