@@ -34,6 +34,16 @@ jobs:
         with:
           credentials_json: ${{ secrets.GOOGLE_CLOUD_CREDENTIALS }}
 
+      - name: Debug Google Cloud auth
+        run: |
+          echo "Project from env: $GOOGLE_CLOUD_PROJECT"
+          echo "Authenticated as:"
+          gcloud auth list
+          echo "Active project:"
+          gcloud config get-value project
+        env:
+          GOOGLE_CLOUD_PROJECT: ${{ secrets.GOOGLE_CLOUD_PROJECT }}
+
       - name: Generate and post content
         run: npm run generate
         env:

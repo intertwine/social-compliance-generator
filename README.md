@@ -53,7 +53,7 @@ You'll need accounts and API keys for:
 
 1. **[OpenRouter](https://openrouter.ai/)** - LLM access (supports 200+ models)
 2. **[Tavily](https://tavily.com/)** - AI-powered web search
-3. **[Google AI Studio](https://aistudio.google.com/)** - Nano Banana Pro image generation
+3. **Google Cloud / Vertex AI** - Gemini image generation (see [Image Generation Setup](#image-generation-setup) below)
 4. **[OpenAI Platform](https://platform.openai.com/)** - Sora 2 video generation (requires API access)
 5. **[X Developer Portal](https://developer.twitter.com/)** - OAuth 2.0 credentials
 6. **[Supabase](https://supabase.com/)** - Token storage for OAuth refresh
@@ -90,7 +90,8 @@ npm run generate
    - `OPENROUTER_API_KEY`
    - `OPENROUTER_MODEL` (optional, defaults to `anthropic/claude-sonnet-4.5-20250929`)
    - `TAVILY_API_KEY`
-   - `GOOGLE_API_KEY`
+   - `GOOGLE_CLOUD_PROJECT` - Your Google Cloud project ID
+   - `GOOGLE_CLOUD_CREDENTIALS` - Service account JSON key (see [Image Generation Setup](#image-generation-setup))
    - `OPENAI_API_KEY`
    - `X_API_CLIENT_ID`
    - `X_API_CLIENT_SECRET`
@@ -155,6 +156,66 @@ const POST_LINKS = [
 ];
 ```
 
+## Image Generation Setup
+
+The image service uses Google's Gemini models (Nano Banana Pro / Gemini 2.5 Flash) with automatic fallback on rate limits.
+
+### Option 1: Vertex AI (Recommended for Production)
+
+Vertex AI provides higher rate limits and better reliability. Required for GitHub Actions.
+
+1. **Create a Google Cloud project** at [console.cloud.google.com](https://console.cloud.google.com)
+
+2. **Enable billing** for the project:
+
+   ```bash
+   gcloud billing projects link YOUR_PROJECT_ID --billing-account=YOUR_BILLING_ACCOUNT
+   ```
+
+3. **Enable the Vertex AI API**:
+
+   ```bash
+   gcloud services enable aiplatform.googleapis.com --project=YOUR_PROJECT_ID
+   ```
+
+4. **Create a service account**:
+
+   ```bash
+   gcloud iam service-accounts create github-vertex-ai \
+     --project=YOUR_PROJECT_ID \
+     --display-name="GitHub Actions Vertex AI"
+
+   gcloud projects add-iam-policy-binding YOUR_PROJECT_ID \
+     --member="serviceAccount:github-vertex-ai@YOUR_PROJECT_ID.iam.gserviceaccount.com" \
+     --role="roles/aiplatform.user"
+   ```
+
+5. **Create and download the key**:
+
+   ```bash
+   gcloud iam service-accounts keys create key.json \
+     --iam-account=github-vertex-ai@YOUR_PROJECT_ID.iam.gserviceaccount.com
+   ```
+
+6. **Add to GitHub Secrets**:
+   - `GOOGLE_CLOUD_PROJECT`: Your project ID
+   - `GOOGLE_CLOUD_CREDENTIALS`: Contents of `key.json`
+
+7. **Delete the local key file**:
+
+   ```bash
+   rm key.json
+   ```
+
+### Option 2: Gemini Developer API (Local Development)
+
+For local development, you can use the simpler Gemini Developer API:
+
+1. Get an API key from [Google AI Studio](https://aistudio.google.com/apikey)
+2. Set `GOOGLE_API_KEY` in your `.env` file
+
+Note: The free tier has strict rate limits. For production use, set up Vertex AI.
+
 ## Troubleshooting
 
 ### Video generation fails
@@ -164,6 +225,14 @@ The Sora 2 API requires explicit invitation from OpenAI. If video generation fai
 ### Token refresh errors
 
 Ensure your Supabase `xrefresh` table exists with columns `id` (int) and `token` (text). The initial OAuth tokens should be set in your environment variables.
+
+### Image generation rate limits
+
+The image service automatically falls back from Nano Banana Pro to Gemini 2.5 Flash on rate limit errors. If both fail:
+
+- Verify billing is enabled: `gcloud billing projects describe YOUR_PROJECT_ID`
+- Check the error message - `free_tier` means billing isn't properly linked
+- Wait a few minutes if you just enabled billing/APIs
 
 ### Rate limits
 
