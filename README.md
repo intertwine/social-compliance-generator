@@ -88,7 +88,7 @@ npm run generate
 1. Go to your repository's **Settings → Secrets and variables → Actions**
 2. Add the following secrets:
    - `OPENROUTER_API_KEY`
-   - `OPENROUTER_MODEL` (optional, defaults to `anthropic/claude-sonnet-4-20250514`)
+   - `OPENROUTER_MODEL` (optional, defaults to `anthropic/claude-sonnet-4.5-20250929`)
    - `TAVILY_API_KEY`
    - `GOOGLE_API_KEY`
    - `OPENAI_API_KEY`

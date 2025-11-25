@@ -13,7 +13,7 @@ interface GeneratedContent {
 }
 
 const OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions";
-const DEFAULT_MODEL = "anthropic/claude-sonnet-4-20250514";
+const DEFAULT_MODEL = "anthropic/claude-sonnet-4.5-20250929";
 
 /**
  * Generate social media post content from AI news search results
