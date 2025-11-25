@@ -1,6 +1,13 @@
 /**
- * Google Nano Banana Pro (Gemini 3 Pro Image) Service
- * Generates images using Google's latest image generation model
+ * Google Gemini Image Generation Service
+ * Supports both Gemini Developer API and Vertex AI
+ *
+ * For Vertex AI (production):
+ *   Set GOOGLE_CLOUD_PROJECT and GOOGLE_CLOUD_LOCATION env vars
+ *   Authentication via Application Default Credentials (ADC)
+ *
+ * For Gemini Developer API (development):
+ *   Set GOOGLE_API_KEY env var
  */
 
 import { GoogleGenAI, Modality } from "@google/genai";
@@ -19,6 +26,35 @@ const IMAGE_MODELS: ImageModel[] = [
   { id: PRIMARY_MODEL, name: "Nano Banana Pro" },
   { id: FALLBACK_MODEL, name: "Gemini 2.5 Flash" },
 ];
+
+/**
+ * Create GoogleGenAI client configured for either Vertex AI or Gemini Developer API
+ */
+function createAIClient(): GoogleGenAI {
+  const project = process.env.GOOGLE_CLOUD_PROJECT;
+  const location = process.env.GOOGLE_CLOUD_LOCATION || "us-central1";
+  const apiKey = process.env.GOOGLE_API_KEY;
+
+  // Prefer Vertex AI if project is configured
+  if (project) {
+    console.info(`Using Vertex AI (project: ${project}, location: ${location})`);
+    return new GoogleGenAI({
+      vertexai: true,
+      project,
+      location,
+    });
+  }
+
+  // Fall back to Gemini Developer API
+  if (apiKey) {
+    console.info("Using Gemini Developer API");
+    return new GoogleGenAI({ apiKey });
+  }
+
+  throw new Error(
+    "Either GOOGLE_CLOUD_PROJECT (for Vertex AI) or GOOGLE_API_KEY (for Gemini API) is required"
+  );
+}
 
 /**
  * Try to generate an image with a specific model
@@ -55,13 +91,7 @@ function isRateLimitError(error: unknown): boolean {
  * Returns the path to the generated image file
  */
 export async function generateImage(prompt: string): Promise<string> {
-  const apiKey = process.env.GOOGLE_API_KEY;
-
-  if (!apiKey) {
-    throw new Error("GOOGLE_API_KEY environment variable is required");
-  }
-
-  const ai = new GoogleGenAI({ apiKey });
+  const ai = createAIClient();
   let lastError: Error | null = null;
 
   for (const model of IMAGE_MODELS) {
