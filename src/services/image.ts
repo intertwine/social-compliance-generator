@@ -14,8 +14,10 @@ import { GoogleGenAI, Modality } from "@google/genai";
 import fs from "fs";
 import path from "path";
 
-const PRIMARY_MODEL = "gemini-3-pro-image-preview";
-const FALLBACK_MODEL = "gemini-2.5-flash-image";
+// Gemini 2.5 Flash Image is the stable GA model available on Vertex AI
+// Gemini 3 Pro Image Preview may require allowlist access
+const PRIMARY_MODEL = "gemini-2.5-flash-image";
+const FALLBACK_MODEL = "gemini-3-pro-image-preview";
 
 interface ImageModel {
   id: string;
@@ -23,8 +25,8 @@ interface ImageModel {
 }
 
 const IMAGE_MODELS: ImageModel[] = [
-  { id: PRIMARY_MODEL, name: "Nano Banana Pro" },
-  { id: FALLBACK_MODEL, name: "Gemini 2.5 Flash" },
+  { id: PRIMARY_MODEL, name: "Gemini 2.5 Flash Image" },
+  { id: FALLBACK_MODEL, name: "Gemini 3 Pro Image" },
 ];
 
 /**
@@ -76,11 +78,19 @@ async function tryGenerateWithModel(
 }
 
 /**
- * Check if an error is a rate limit error (429)
+ * Check if an error is recoverable (should try fallback model)
+ * - 429: Rate limit exceeded
+ * - 404: Model not found (may not be available in region/project)
  */
-function isRateLimitError(error: unknown): boolean {
+function isRecoverableError(error: unknown): boolean {
   if (error instanceof Error) {
-    return error.message.includes("429") || error.message.includes("RESOURCE_EXHAUSTED");
+    const msg = error.message;
+    return (
+      msg.includes("429") ||
+      msg.includes("RESOURCE_EXHAUSTED") ||
+      msg.includes("404") ||
+      msg.includes("NOT_FOUND")
+    );
   }
   return false;
 }
@@ -128,8 +138,8 @@ export async function generateImage(prompt: string): Promise<string> {
     } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error));
 
-      if (isRateLimitError(error)) {
-        console.warn(`Rate limited on ${model.name}, trying fallback model...`);
+      if (isRecoverableError(error)) {
+        console.warn(`${model.name} unavailable, trying fallback model...`);
         continue;
       }
 
