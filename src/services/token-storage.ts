@@ -93,12 +93,19 @@ export async function saveTokens(
 ): Promise<TokenResult> {
   console.info("Saving refresh token to Cloudflare KV...");
 
-  const baseUrl = getKVBaseUrl();
-  const response = await fetch(`${baseUrl}/values/${KV_KEY}`, {
+  const accountId = process.env.CLOUDFLARE_ACCOUNT_ID;
+  const namespaceId = process.env.CLOUDFLARE_KV_NAMESPACE_ID;
+  const apiToken = getApiToken();
+
+  // Use the exact endpoint format from Cloudflare docs
+  const url = `https://api.cloudflare.com/client/v4/accounts/${accountId}/storage/kv/namespaces/${namespaceId}/values/${KV_KEY}`;
+
+  console.info(`KV write URL: ${url.replace(accountId!, "[ACCOUNT_ID]").replace(namespaceId!, "[NAMESPACE_ID]")}`);
+
+  const response = await fetch(url, {
     method: "PUT",
     headers: {
-      Authorization: `Bearer ${getApiToken()}`,
-      "Content-Type": "text/plain",
+      Authorization: `Bearer ${apiToken}`,
     },
     body: refreshToken,
   });
@@ -106,6 +113,7 @@ export async function saveTokens(
   if (!response.ok) {
     const errorText = await response.text();
     console.error("Error saving token to Cloudflare KV:", response.status, errorText);
+    console.error("Check that your API token has 'Account > Workers KV Storage > Edit' permission");
     throw new Error(`Failed to save token to Cloudflare KV: ${response.status}`);
   }
 
