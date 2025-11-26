@@ -5,7 +5,7 @@
 
 import { TwitterApi } from "twitter-api-v2";
 import { TwitterApiAutoTokenRefresher } from "@twitter-api-v2/plugin-token-refresher";
-import { getStoredTokens, saveTokens } from "./supabase";
+import { getStoredTokens, saveTokens } from "./token-storage";
 import fs from "fs";
 
 const PLATFORM_NAME = "X.com";

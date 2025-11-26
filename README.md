@@ -56,7 +56,7 @@ You'll need accounts and API keys for:
 3. **Google Cloud / Vertex AI** - Gemini image generation (see [Image Generation Setup](#image-generation-setup) below)
 4. **[OpenAI Platform](https://platform.openai.com/)** - Sora 2 video generation (requires API access)
 5. **[X Developer Portal](https://developer.twitter.com/)** - OAuth 2.0 credentials
-6. **[Supabase](https://supabase.com/)** - Token storage for OAuth refresh
+6. **[Cloudflare](https://cloudflare.com/)** - KV storage for OAuth refresh tokens
 
 See [README-AUTH.md](README-AUTH.md) for detailed setup instructions.
 
@@ -97,8 +97,9 @@ npm run generate
    - `X_API_CLIENT_SECRET`
    - `X_API_ACCESS_TOKEN`
    - `X_API_REFRESH_TOKEN`
-   - `SUPABASE_URL`
-   - `SUPABASE_KEY`
+   - `CLOUDFLARE_ACCOUNT_ID` - Your Cloudflare account ID
+   - `CLOUDFLARE_KV_NAMESPACE_ID` - KV namespace ID for token storage
+   - `CLOUDFLARE_KV_API_TOKEN` - API token with KV write permissions
 
 3. The workflow will run automatically at 6am, 12pm, 6pm, and midnight UTC
 4. You can also trigger it manually from the **Actions** tab
@@ -224,7 +225,7 @@ The Sora 2 API requires explicit invitation from OpenAI. If video generation fai
 
 ### Token refresh errors
 
-Ensure your Supabase `xrefresh` table exists with columns `id` (int) and `token` (text). The initial OAuth tokens should be set in your environment variables.
+Ensure your Cloudflare KV namespace is set up correctly and the API token has write permissions. The initial OAuth tokens should be set in your environment variables (`X_API_ACCESS_TOKEN` and `X_API_REFRESH_TOKEN`).
 
 ### Image generation rate limits
 
