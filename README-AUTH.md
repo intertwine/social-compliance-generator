@@ -53,72 +53,10 @@ Once you have the access token and refresh token, you can stop the xauth server.
 
 ## APIs
 
-### Trigger.dev
+See [README.md](README.md) for the complete list of API keys needed for v2.0:
 
-Used to schedule and host the generation task.
-
-1. [Create a trigger.dev account](https://cloud.trigger.dev/login) and set up a v3 project.
-    - Quickstart Docs: <https://trigger.dev/docs/v3/quick-start>
-
-### Anthropic
-
-Used to generate text content.
-
-1. [Create an Anthropic Claude account](https://claude.ai/login)
-1. Set up an API key for Claude and update this key in your .env file:
-    - `ANTHROPIC_API_KEY=sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`
-
-### OpenAI
-
-Used to generate text content and images.
-
-1. [Create an OpenAI account](https://platform.openai.com/account/api-keys)
-1. Set up an API key for OpenAI and update this key in your .env file:
-    - `OPENAI_API_KEY=sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`
-
-### Hugging Face
-
-Used to download the musicgen model and run inference on it.
-
-1. [Create an Hugging Face account](https://huggingface.co/login)
-1. [Set up an API key for Hugging Face](https://huggingface.co/settings/tokens) and update this key in your .env file:
-    - `HF_TOKEN=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`
-
-### Supabase
-
-1. Set up a Supabase account and create a new project.
-1. Create a storage bucket in Supabase called "social-compliance-generator" and make sure it is public.
-1. Add the following storage S3 Connection environment variables to your .env file (found on the Supabase Storage Settings page):
-
-```shell
-SUPABASE_AWS_S3_ACCESS_KEY_ID=<your-supabase-s3-access-key-id>
-SUPABASE_AWS_S3_SECRET=<your-supabase-s3-secret-key>
-SUPABASE_AWS_S3_REGION=<your-supabase-s3-region>
-SUPABASE_AWS_S3_ENDPOINT=<your-supabase-s3-endpoint>
-```
-
-1. Add the following database environment variables to your .env file (found on the Supabase project settings page):
-
-```shell
-SUPABASE_URL=<your-supabase-url>
-SUPABASE_KEY=<your-supabase-key>
-```
-
-1. From a terminal in the project directory, run the following commands to login to Supabase:
-
-```shell
-> supabase login
-```
-
-1. Run the following command to create a new Supabase table called "xrefresh" with columns id, updated_at, and token:
-
-```shell
-> supabase table create xrefresh --column id:integer --column updated_at:timestamptz --column token:text
-```
-
-1. Run the following command in the project directory to generate types for the Supabase table:
-
-```shell
-> supabase login
-> npm run generate-types
-```
+- **OpenRouter** - LLM access
+- **Tavily** - AI-powered web search
+- **Google Cloud / Vertex AI** - Gemini image generation
+- **OpenAI** - Sora 2 video generation
+- **Cloudflare** - KV storage for tokens, R2 for workflow storage (optional)

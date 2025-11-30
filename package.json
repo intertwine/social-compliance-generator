@@ -6,8 +6,7 @@
     "build": "tsc",
     "generate": "npm run build && node dist/index.js",
     "dev": "ts-node src/index.ts",
-    "replay": "npm run build && node dist/replay.js",
-    "generate-types": "./generate-supabase-types.sh"
+    "replay": "npm run build && node dist/replay.js"
   },
   "keywords": [],
   "author": "Bryan Young<bryan@intertwinesys.com>",

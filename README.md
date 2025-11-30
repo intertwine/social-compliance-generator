@@ -41,7 +41,7 @@ A GitHub Actions workflow runs 4 times daily. Upon invocation, it:
 4. **Generates a video** using [OpenAI Sora 2](https://platform.openai.com/docs/guides/video-generation) from the image with synchronized audio
 5. **Posts to X** using the [X API v2](https://developer.twitter.com/en/docs/twitter-api) with OAuth 2.0
 
-```
+```text
 Tavily (AI news) → OpenRouter LLM (content) → Nano Banana Pro (image)
                                                       ↓
                     X API v2 (post) ← Sora 2 (video with audio)
@@ -57,6 +57,7 @@ You'll need accounts and API keys for:
 4. **[OpenAI Platform](https://platform.openai.com/)** - Sora 2 video generation (requires API access)
 5. **[X Developer Portal](https://developer.twitter.com/)** - OAuth 2.0 credentials
 6. **[Cloudflare](https://cloudflare.com/)** - KV storage for OAuth refresh tokens
+7. **[Cloudflare R2](https://cloudflare.com/)** (Optional) - Object storage for workflow persistence and replay
 
 See [README-AUTH.md](README-AUTH.md) for detailed setup instructions.
 
@@ -100,25 +101,32 @@ npm run generate
    - `CLOUDFLARE_ACCOUNT_ID` - Your Cloudflare account ID
    - `CLOUDFLARE_KV_NAMESPACE_ID` - KV namespace ID for token storage
    - `CLOUDFLARE_KV_API_TOKEN` - API token with KV write permissions
+   - `CLOUDFLARE_R2_BUCKET` (optional) - R2 bucket name for workflow storage
+   - `CLOUDFLARE_R2_ACCESS_KEY_ID` (optional) - R2 API access key
+   - `CLOUDFLARE_R2_SECRET_ACCESS_KEY` (optional) - R2 API secret key
 
 3. The workflow will run automatically at 6am, 12pm, 6pm, and midnight UTC
 4. You can also trigger it manually from the **Actions** tab
 
 ## Project Structure
 
-```
+```text
 social-compliance-generator/
 ├── .github/workflows/
 │   └── generate-post.yml      # Cron-triggered GitHub Action
 ├── src/
 │   ├── index.ts               # Main orchestration
-│   └── services/
-│       ├── search.ts          # Tavily web search
-│       ├── llm.ts             # OpenRouter LLM
-│       ├── image.ts           # Google Nano Banana Pro
-│       ├── video.ts           # OpenAI Sora 2
-│       ├── x.ts               # X API posting
-│       └── supabase.ts        # Token storage
+│   ├── replay.ts              # Workflow replay utility
+│   ├── services/
+│   │   ├── search.ts          # Tavily web search
+│   │   ├── llm.ts             # OpenRouter LLM
+│   │   ├── image.ts           # Google Nano Banana Pro
+│   │   ├── video.ts           # OpenAI Sora 2
+│   │   ├── x.ts               # X API posting
+│   │   ├── token-storage.ts   # Cloudflare KV token storage
+│   │   └── workflow-storage.ts # Cloudflare R2 workflow storage
+│   └── types/
+│       └── workflow.ts        # Workflow data types
 ├── .env.example               # Environment template
 ├── package.json
 └── tsconfig.json
@@ -217,6 +225,66 @@ For local development, you can use the simpler Gemini Developer API:
 
 Note: The free tier has strict rate limits. For production use, set up Vertex AI.
 
+## Workflow Storage Setup (Optional)
+
+The workflow storage feature uses Cloudflare R2 to persist intermediate results (news search, content, images, videos) from each workflow run. This enables:
+
+- **Replay failed posts**: If X posting fails, you can manually repost later
+- **Debugging**: Inspect the full workflow state for any run
+- **Audit trail**: Keep a history of all generated content
+
+### Setting Up R2 Storage
+
+1. **Create an R2 bucket** at [Cloudflare Dashboard](https://dash.cloudflare.com/) → R2 → Create bucket
+
+2. **Create an R2 API token**:
+   - Go to Dashboard → R2 → Manage R2 API Tokens → Create API token
+   - Select "Object Read & Write" permission
+   - Apply to your specific bucket or all buckets
+   - Copy the Access Key ID and Secret Access Key
+
+3. **Add to your environment** (`.env` for local, GitHub Secrets for Actions):
+
+   ```bash
+   CLOUDFLARE_R2_BUCKET=your-bucket-name
+   CLOUDFLARE_R2_ACCESS_KEY_ID=your-access-key-id
+   CLOUDFLARE_R2_SECRET_ACCESS_KEY=your-secret-access-key
+   ```
+
+Note: R2 storage is optional. If not configured, workflows will run normally without persistence.
+
+### Replay Utility
+
+The replay utility allows you to manage workflow runs stored in R2:
+
+```bash
+# List recent workflow runs
+npm run replay list
+
+# Show details of a specific run
+npm run replay show <runId>
+
+# Repost a failed workflow to X
+npm run replay post <runId>
+
+# Delete a workflow run from storage
+npm run replay delete <runId>
+```
+
+Example output from `npm run replay list`:
+
+```text
+[OK] run-20241115-103000-abc123
+    Started: 2024-11-15T10:30:00.000Z
+    Completed: 2024-11-15T10:32:15.000Z
+    Topic: OpenAI announces GPT-5
+    Post ID: 1234567890 (video)
+
+[FAIL] run-20241115-063000-def456
+    Started: 2024-11-15T06:30:00.000Z
+    Topic: Google releases Gemini 3
+```
+
 ## Troubleshooting
 
 ### Video generation fails
@@ -235,9 +303,19 @@ The image service automatically falls back from Nano Banana Pro to Gemini 2.5 Fl
 - Check the error message - `free_tier` means billing isn't properly linked
 - Wait a few minutes if you just enabled billing/APIs
 
+### R2 storage errors
+
+If you're seeing R2-related errors:
+
+- Verify all three R2 environment variables are set: `CLOUDFLARE_R2_BUCKET`, `CLOUDFLARE_R2_ACCESS_KEY_ID`, `CLOUDFLARE_R2_SECRET_ACCESS_KEY`
+- Ensure the API token has "Object Read & Write" permissions
+- Check that the bucket name matches exactly (case-sensitive)
+- R2 storage is optional - workflows will continue without it if not configured
+
 ### Rate limits
 
 OpenRouter and other APIs have rate limits. If you're hitting limits, consider:
+
 - Reducing post frequency
 - Using a different LLM model
 - Adding retry logic with exponential backoff
