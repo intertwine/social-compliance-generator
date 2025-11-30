@@ -17,9 +17,48 @@ import {
   DeleteObjectCommand,
 } from "@aws-sdk/client-s3";
 import * as fs from "fs";
+import * as path from "path";
 import type { WorkflowRun, WorkflowRunSummary } from "../types/workflow";
 
 const WORKFLOWS_PREFIX = "workflows/";
+
+/**
+ * Check if an error indicates the object doesn't exist
+ */
+function isNotFoundError(error: any): boolean {
+  return (
+    error.name === "NoSuchKey" ||
+    error.code === "NoSuchKey" ||
+    error.$metadata?.httpStatusCode === 404
+  );
+}
+
+/**
+ * Ensure the directory for a file path exists
+ */
+function ensureDirectoryExists(filePath: string): void {
+  const dir = path.dirname(filePath);
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+}
+
+/**
+ * Detect image format from file path
+ */
+function detectImageFormat(imagePath: string): { ext: string; contentType: string } {
+  const lowerPath = imagePath.toLowerCase();
+  if (lowerPath.endsWith(".png")) {
+    return { ext: "png", contentType: "image/png" };
+  } else if (lowerPath.endsWith(".webp")) {
+    return { ext: "webp", contentType: "image/webp" };
+  } else if (lowerPath.endsWith(".gif")) {
+    return { ext: "gif", contentType: "image/gif" };
+  } else {
+    // Default to jpg for .jpg, .jpeg, or unknown
+    return { ext: "jpg", contentType: "image/jpeg" };
+  }
+}
 
 /**
  * Get configured S3 client for Cloudflare R2
@@ -73,34 +112,34 @@ export function isR2Configured(): boolean {
 
 /**
  * Save workflow metadata to R2
+ * Errors are caught and logged to prevent workflow interruption
  */
 export async function saveWorkflowMetadata(workflow: WorkflowRun): Promise<void> {
   if (!isR2Configured()) {
-    console.warn("R2 storage not configured, skipping workflow metadata save");
     return;
   }
 
-  const client = getR2Client();
-  const bucket = getBucketName();
-  const key = `${WORKFLOWS_PREFIX}${workflow.runId}/metadata.json`;
+  try {
+    const client = getR2Client();
+    const bucket = getBucketName();
+    const key = `${WORKFLOWS_PREFIX}${workflow.runId}/metadata.json`;
 
-  console.info(`Saving workflow metadata to R2: ${key}`);
-
-  await client.send(
-    new PutObjectCommand({
-      Bucket: bucket,
-      Key: key,
-      Body: JSON.stringify(workflow, null, 2),
-      ContentType: "application/json",
-    })
-  );
-
-  console.info("Workflow metadata saved successfully");
+    await client.send(
+      new PutObjectCommand({
+        Bucket: bucket,
+        Key: key,
+        Body: JSON.stringify(workflow, null, 2),
+        ContentType: "application/json",
+      })
+    );
+  } catch (error: any) {
+    console.warn(`Failed to save workflow metadata: ${error.message}`);
+  }
 }
 
 /**
  * Save generated image to R2
- * @returns The R2 key where the image is stored
+ * @returns The R2 key where the image is stored, or empty string on failure
  */
 export async function saveWorkflowImage(
   runId: string,
@@ -114,9 +153,8 @@ export async function saveWorkflowImage(
   const client = getR2Client();
   const bucket = getBucketName();
 
-  // Determine content type and extension from file
-  const ext = imagePath.toLowerCase().endsWith(".png") ? "png" : "jpg";
-  const contentType = ext === "png" ? "image/png" : "image/jpeg";
+  // Detect format from file extension
+  const { ext, contentType } = detectImageFormat(imagePath);
   const key = `${WORKFLOWS_PREFIX}${runId}/image.${ext}`;
 
   console.info(`Saving workflow image to R2: ${key}`);
@@ -137,8 +175,8 @@ export async function saveWorkflowImage(
 }
 
 /**
- * Save generated video to R2
- * @returns The R2 key where the video is stored
+ * Save generated video to R2 using streaming for large files
+ * @returns The R2 key where the video is stored, or empty string on failure
  */
 export async function saveWorkflowVideo(
   runId: string,
@@ -155,13 +193,14 @@ export async function saveWorkflowVideo(
 
   console.info(`Saving workflow video to R2: ${key}`);
 
-  const videoData = fs.readFileSync(videoPath);
+  // Use streaming for potentially large video files
+  const videoStream = fs.createReadStream(videoPath);
 
   await client.send(
     new PutObjectCommand({
       Bucket: bucket,
       Key: key,
-      Body: videoData,
+      Body: videoStream,
       ContentType: "video/mp4",
     })
   );
@@ -198,7 +237,7 @@ export async function getWorkflowMetadata(runId: string): Promise<WorkflowRun | 
     const bodyString = await response.Body.transformToString();
     return JSON.parse(bodyString) as WorkflowRun;
   } catch (error: any) {
-    if (error.name === "NoSuchKey" || error.$metadata?.httpStatusCode === 404) {
+    if (isNotFoundError(error)) {
       return null;
     }
     throw error;
@@ -221,8 +260,8 @@ export async function downloadWorkflowImage(
   const client = getR2Client();
   const bucket = getBucketName();
 
-  // Try both png and jpg extensions
-  for (const ext of ["png", "jpg"]) {
+  // Try multiple image extensions
+  for (const ext of ["png", "jpg", "webp", "gif"]) {
     const key = `${WORKFLOWS_PREFIX}${runId}/image.${ext}`;
 
     try {
@@ -240,13 +279,14 @@ export async function downloadWorkflowImage(
         }
         const buffer = Buffer.concat(chunks);
 
-        const finalPath = destPath.replace(/\.(png|jpg)$/, `.${ext}`);
+        const finalPath = destPath.replace(/\.(png|jpg|webp|gif)$/, `.${ext}`);
+        ensureDirectoryExists(finalPath);
         fs.writeFileSync(finalPath, buffer);
         console.info(`Downloaded workflow image to: ${finalPath}`);
         return finalPath;
       }
     } catch (error: any) {
-      if (error.name === "NoSuchKey" || error.$metadata?.httpStatusCode === 404) {
+      if (isNotFoundError(error)) {
         continue;
       }
       throw error;
@@ -288,12 +328,13 @@ export async function downloadWorkflowVideo(
       }
       const buffer = Buffer.concat(chunks);
 
+      ensureDirectoryExists(destPath);
       fs.writeFileSync(destPath, buffer);
       console.info(`Downloaded workflow video to: ${destPath}`);
       return destPath;
     }
   } catch (error: any) {
-    if (error.name === "NoSuchKey" || error.$metadata?.httpStatusCode === 404) {
+    if (isNotFoundError(error)) {
       return null;
     }
     throw error;
@@ -305,6 +346,8 @@ export async function downloadWorkflowVideo(
 /**
  * List recent workflow runs
  * @param limit Maximum number of runs to return (default 20)
+ * Note: This function lists up to 1000 workflow objects. For larger deployments,
+ * consider implementing pagination with ContinuationToken.
  */
 export async function listWorkflowRuns(limit: number = 20): Promise<WorkflowRunSummary[]> {
   if (!isR2Configured()) {
@@ -338,15 +381,29 @@ export async function listWorkflowRuns(limit: number = 20): Promise<WorkflowRunS
     return bTime - aTime;
   });
 
-  // Fetch metadata for each run (limited)
+  // Extract run IDs from limited set
+  const runIds = metadataKeys
+    .slice(0, limit)
+    .map((obj) => obj.Key?.replace(WORKFLOWS_PREFIX, "").replace("/metadata.json", ""))
+    .filter((id): id is string => !!id);
+
+  // Fetch metadata in parallel for better performance
+  const metadataPromises = runIds.map((runId) =>
+    getWorkflowMetadata(runId)
+      .then((workflow) => ({ runId, workflow, error: null }))
+      .catch((error) => ({ runId, workflow: null, error }))
+  );
+
+  const results = await Promise.allSettled(metadataPromises);
   const summaries: WorkflowRunSummary[] = [];
 
-  for (const obj of metadataKeys.slice(0, limit)) {
-    const runId = obj.Key?.replace(WORKFLOWS_PREFIX, "").replace("/metadata.json", "");
-    if (!runId) continue;
-
-    try {
-      const workflow = await getWorkflowMetadata(runId);
+  for (const result of results) {
+    if (result.status === "fulfilled") {
+      const { runId, workflow, error } = result.value;
+      if (error) {
+        console.warn(`Failed to fetch metadata for run ${runId}:`, error);
+        continue;
+      }
       if (workflow) {
         summaries.push({
           runId: workflow.runId,
@@ -358,8 +415,6 @@ export async function listWorkflowRuns(limit: number = 20): Promise<WorkflowRunS
           mediaType: workflow.posting.data?.mediaType,
         });
       }
-    } catch (error) {
-      console.warn(`Failed to fetch metadata for run ${runId}:`, error);
     }
   }
 

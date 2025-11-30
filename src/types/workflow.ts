@@ -117,9 +117,12 @@ export function createWorkflowRun(runId: string): WorkflowRun {
 
 /**
  * Generate a unique run ID
+ * Format: run-YYYYMMDD-HHMMSS-random (e.g., run-20240115-103000-abc123)
  */
 export function generateRunId(): string {
-  const timestamp = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+  const now = new Date();
+  const date = now.toISOString().slice(0, 10).replace(/-/g, "");
+  const time = now.toISOString().slice(11, 19).replace(/:/g, "");
   const random = Math.random().toString(36).substring(2, 8);
-  return `run-${timestamp}-${random}`;
+  return `run-${date}-${time}-${random}`;
 }
