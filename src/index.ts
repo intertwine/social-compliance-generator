@@ -115,16 +115,18 @@ async function generatePost(): Promise<void> {
     await saveWorkflowMetadata(workflow);
 
     // Step 4: Generate video from image
-    const videoProvider = getVideoApiProvider();
-    const videoProviderName = getProviderDisplayName(videoProvider);
-    console.info(`\n[Step 4/5] Generating video with ${videoProviderName}...`);
+    const preferredProvider = getVideoApiProvider();
+    const preferredProviderName = getProviderDisplayName(preferredProvider);
+    console.info(`\n[Step 4/5] Generating video with ${preferredProviderName}...`);
     workflow.videoGeneration.status = "in_progress";
     workflow.videoGeneration.startedAt = new Date().toISOString();
-    workflow.videoGeneration.data = { prompt: content.videoPrompt, provider: videoProvider };
+    workflow.videoGeneration.data = { prompt: content.videoPrompt, provider: preferredProvider };
     await saveWorkflowMetadata(workflow);
 
     try {
-      videoPath = await generateVideo(imagePath, content.videoPrompt);
+      const videoResult = await generateVideo(imagePath, content.videoPrompt);
+      videoPath = videoResult.videoPath;
+      const actualProvider = videoResult.provider;
 
       // Save video to R2
       const videoKey = await saveWorkflowVideo(runId, videoPath);
@@ -133,7 +135,7 @@ async function generatePost(): Promise<void> {
       workflow.videoGeneration.completedAt = new Date().toISOString();
       workflow.videoGeneration.data = {
         prompt: content.videoPrompt,
-        provider: videoProvider,
+        provider: actualProvider,
         videoKey,
       };
       await saveWorkflowMetadata(workflow);

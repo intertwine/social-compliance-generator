@@ -18,6 +18,14 @@ import fs from "fs";
 export type VideoApiProvider = "veo" | "sora";
 
 /**
+ * Result from video generation including which provider was used
+ */
+export interface VideoGenerationResult {
+  videoPath: string;
+  provider: VideoApiProvider;
+}
+
+/**
  * Get the configured video API provider
  * Defaults to "veo" if not specified
  * Throws an error for invalid values
@@ -71,24 +79,25 @@ export function getProviderDisplayName(provider: VideoApiProvider): string {
  *
  * @param imagePath - Path to the input image
  * @param prompt - Text prompt describing the desired video motion/action
- * @returns Path to the generated video file
+ * @returns Result with video path and the actual provider used (may differ from preferred if fallback occurred)
  */
 export async function generateVideo(
   imagePath: string,
   prompt: string
-): Promise<string> {
-  const provider = getVideoApiProvider();
-  const displayName = getProviderDisplayName(provider);
+): Promise<VideoGenerationResult> {
+  const preferredProvider = getVideoApiProvider();
+  const displayName = getProviderDisplayName(preferredProvider);
 
   // Validate provider is configured
-  if (!isProviderConfigured(provider)) {
-    const alternateProvider: VideoApiProvider = provider === "veo" ? "sora" : "veo";
+  if (!isProviderConfigured(preferredProvider)) {
+    const alternateProvider: VideoApiProvider = preferredProvider === "veo" ? "sora" : "veo";
 
     if (isProviderConfigured(alternateProvider)) {
       console.warn(
         `${displayName} is not configured. Falling back to ${getProviderDisplayName(alternateProvider)}...`
       );
-      return generateVideoWithProvider(alternateProvider, imagePath, prompt);
+      const videoPath = await generateVideoWithProvider(alternateProvider, imagePath, prompt);
+      return { videoPath, provider: alternateProvider };
     }
 
     throw new Error(
@@ -98,7 +107,8 @@ export async function generateVideo(
   }
 
   console.info(`Using ${displayName} for video generation`);
-  return generateVideoWithProvider(provider, imagePath, prompt);
+  const videoPath = await generateVideoWithProvider(preferredProvider, imagePath, prompt);
+  return { videoPath, provider: preferredProvider };
 }
 
 /**
