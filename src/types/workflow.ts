@@ -74,6 +74,8 @@ export interface WorkflowRun {
   /** Step 4: Video generation */
   videoGeneration: WorkflowStep<{
     prompt: string;
+    /** Video API provider used: "veo" or "sora" */
+    provider?: string;
     /** R2 key where video is stored */
     videoKey?: string;
   }>;
