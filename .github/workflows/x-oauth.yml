@@ -1,0 +1,219 @@
+name: X OAuth Token Generator
+
+on:
+  workflow_dispatch:
+    inputs:
+      callback_url:
+        description: 'Leave empty to get auth URL. Paste callback URL here to exchange for tokens.'
+        required: false
+        default: ''
+
+jobs:
+  oauth:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Generate Auth URL or Exchange Token
+        env:
+          X_API_CLIENT_ID: ${{ secrets.X_API_CLIENT_ID }}
+          X_API_CLIENT_SECRET: ${{ secrets.X_API_CLIENT_SECRET }}
+          CALLBACK_URL: ${{ github.event.inputs.callback_url }}
+        run: |
+          node << 'SCRIPT'
+          const crypto = require('crypto');
+
+          const CLIENT_ID = process.env.X_API_CLIENT_ID;
+          const CLIENT_SECRET = process.env.X_API_CLIENT_SECRET;
+          const CALLBACK_URL_INPUT = process.env.CALLBACK_URL?.trim() || '';
+          const REDIRECT_URI = 'http://127.0.0.1:3000/callback';
+
+          const SCOPES = [
+            'tweet.read',
+            'tweet.write',
+            'users.read',
+            'offline.access',
+            'media.write'
+          ].join(' ');
+
+          if (!CLIENT_ID) {
+            console.error('❌ X_API_CLIENT_ID secret is not configured');
+            process.exit(1);
+          }
+
+          function generateCodeVerifier() {
+            return crypto.randomBytes(32).toString('base64url');
+          }
+
+          function generateCodeChallenge(verifier) {
+            return crypto.createHash('sha256').update(verifier).digest('base64url');
+          }
+
+          function generateState() {
+            return crypto.randomBytes(16).toString('hex');
+          }
+
+          async function exchangeCodeForTokens(code, codeVerifier) {
+            const params = new URLSearchParams({
+              grant_type: 'authorization_code',
+              code: code,
+              redirect_uri: REDIRECT_URI,
+              code_verifier: codeVerifier,
+            });
+
+            const headers = {
+              'Content-Type': 'application/x-www-form-urlencoded',
+            };
+
+            if (CLIENT_SECRET) {
+              const credentials = Buffer.from(`${CLIENT_ID}:${CLIENT_SECRET}`).toString('base64');
+              headers['Authorization'] = `Basic ${credentials}`;
+            } else {
+              params.append('client_id', CLIENT_ID);
+            }
+
+            const response = await fetch('https://api.twitter.com/2/oauth2/token', {
+              method: 'POST',
+              headers,
+              body: params.toString(),
+            });
+
+            if (!response.ok) {
+              const errorText = await response.text();
+              throw new Error(`Token exchange failed: ${response.status} - ${errorText}`);
+            }
+
+            return response.json();
+          }
+
+          async function main() {
+            if (!CALLBACK_URL_INPUT) {
+              // Step 1: Generate auth URL
+              const state = generateState();
+              const codeVerifier = generateCodeVerifier();
+              const codeChallenge = generateCodeChallenge(codeVerifier);
+
+              const params = new URLSearchParams({
+                response_type: 'code',
+                client_id: CLIENT_ID,
+                redirect_uri: REDIRECT_URI,
+                scope: SCOPES,
+                state: state,
+                code_challenge: codeChallenge,
+                code_challenge_method: 'S256',
+              });
+
+              const authUrl = `https://twitter.com/i/oauth2/authorize?${params.toString()}`;
+
+              console.log('');
+              console.log('='.repeat(70));
+              console.log('STEP 1: Open this URL on your phone/browser and authorize:');
+              console.log('='.repeat(70));
+              console.log('');
+              console.log(authUrl);
+              console.log('');
+              console.log('='.repeat(70));
+              console.log('');
+              console.log('After authorizing, you will be redirected to a page that won\'t load.');
+              console.log('That\'s OK! Copy the ENTIRE URL from your browser\'s address bar.');
+              console.log('');
+              console.log('Then run this workflow again with the callback URL pasted into the input.');
+              console.log('');
+              console.log('='.repeat(70));
+              console.log('IMPORTANT: Save these values - you\'ll need them for Step 2:');
+              console.log('='.repeat(70));
+              console.log('');
+              console.log(`CODE_VERIFIER=${codeVerifier}`);
+              console.log(`STATE=${state}`);
+              console.log('');
+              console.log('(Copy these! You\'ll need to add them to the callback URL)');
+              console.log('');
+
+            } else {
+              // Step 2: Exchange callback URL for tokens
+              // The callback URL should have code and state params
+              // But we also need the code_verifier which the user needs to provide
+
+              // Check if it looks like a URL
+              if (!CALLBACK_URL_INPUT.includes('code=')) {
+                console.error('❌ The input doesn\'t look like a callback URL.');
+                console.error('   It should contain "code=" parameter.');
+                console.error('   Example: http://127.0.0.1:3000/callback?state=...&code=...');
+                process.exit(1);
+              }
+
+              // Parse the callback URL
+              let url;
+              try {
+                url = new URL(CALLBACK_URL_INPUT);
+              } catch (e) {
+                console.error('❌ Invalid URL format');
+                process.exit(1);
+              }
+
+              const code = url.searchParams.get('code');
+              const state = url.searchParams.get('state');
+              const error = url.searchParams.get('error');
+
+              if (error) {
+                console.error(`❌ Authorization failed: ${error}`);
+                process.exit(1);
+              }
+
+              if (!code) {
+                console.error('❌ No authorization code found in the URL');
+                process.exit(1);
+              }
+
+              // For the code verifier, we need the user to append it
+              // Check if code_verifier is in the URL (we'll ask them to add it)
+              const codeVerifier = url.searchParams.get('code_verifier');
+
+              if (!codeVerifier) {
+                console.error('');
+                console.error('❌ Missing code_verifier!');
+                console.error('');
+                console.error('You need to append the CODE_VERIFIER from Step 1 to the URL.');
+                console.error('');
+                console.error('Add it like this:');
+                console.error(`${CALLBACK_URL_INPUT}&code_verifier=YOUR_CODE_VERIFIER_HERE`);
+                console.error('');
+                process.exit(1);
+              }
+
+              console.log('Exchanging authorization code for tokens...');
+              console.log('');
+
+              try {
+                const tokens = await exchangeCodeForTokens(code, codeVerifier);
+
+                console.log('='.repeat(70));
+                console.log('✅ SUCCESS! Update these GitHub Secrets:');
+                console.log('='.repeat(70));
+                console.log('');
+                console.log('X_API_ACCESS_TOKEN:');
+                console.log(tokens.access_token);
+                console.log('');
+                console.log('X_API_REFRESH_TOKEN:');
+                console.log(tokens.refresh_token);
+                console.log('');
+                console.log('='.repeat(70));
+                console.log('');
+                console.log('Go to: Settings → Secrets and variables → Actions');
+                console.log('Update both X_API_ACCESS_TOKEN and X_API_REFRESH_TOKEN');
+                console.log('');
+              } catch (err) {
+                console.error('❌ Token exchange failed:', err.message);
+                process.exit(1);
+              }
+            }
+          }
+
+          main();
+          SCRIPT
