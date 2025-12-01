@@ -63,6 +63,22 @@ function createAIClient(): GoogleGenAI {
 }
 
 /**
+ * Get MIME type from file extension
+ */
+function getMimeType(filePath: string): string {
+  const ext = path.extname(filePath).toLowerCase();
+  const mimeTypes: Record<string, string> = {
+    ".png": "image/png",
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".webp": "image/webp",
+    ".gif": "image/gif",
+    ".bmp": "image/bmp",
+  };
+  return mimeTypes[ext] || "image/jpeg";
+}
+
+/**
  * Check if an error is recoverable (should try fallback model)
  * - 429: Rate limit exceeded
  * - 404: Model not found (may not be available in region/project)
@@ -162,8 +178,8 @@ async function saveVideo(
   mimeType?: string
 ): Promise<string> {
   const timestamp = Date.now();
-  const extension = mimeType?.includes("mp4") ? "mp4" : "mp4";
-  const videoPath = path.join(process.cwd(), `generated-video-${timestamp}.${extension}`);
+  // Veo typically returns mp4 videos
+  const videoPath = path.join(process.cwd(), `generated-video-${timestamp}.mp4`);
 
   if (videoBytes) {
     // Video returned as base64 bytes
@@ -206,7 +222,7 @@ export async function generateVideoWithVeo(
   // Read image and convert to base64
   const imageBuffer = fs.readFileSync(imagePath);
   const imageBytes = imageBuffer.toString("base64");
-  const mimeType = imagePath.endsWith(".png") ? "image/png" : "image/jpeg";
+  const mimeType = getMimeType(imagePath);
 
   for (const model of VEO_MODELS) {
     console.info(`Generating video with ${model.name}: "${prompt.substring(0, 100)}..."`);

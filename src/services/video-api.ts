@@ -11,8 +11,8 @@
  * - Sora requires: OPENAI_API_KEY
  */
 
-import { generateVideoWithVeo, cleanupVeoVideo } from "./veo";
-import { generateVideo as generateVideoWithSora, cleanupVideo as cleanupSoraVideo } from "./video";
+import { generateVideoWithVeo } from "./veo";
+import { generateVideo as generateVideoWithSora } from "./video";
 import fs from "fs";
 
 export type VideoApiProvider = "veo" | "sora";
@@ -20,16 +20,22 @@ export type VideoApiProvider = "veo" | "sora";
 /**
  * Get the configured video API provider
  * Defaults to "veo" if not specified
+ * Throws an error for invalid values
  */
 export function getVideoApiProvider(): VideoApiProvider {
   const configured = process.env.PREFERRED_VIDEO_API?.toLowerCase();
+
+  if (!configured || configured === "veo") {
+    return "veo";
+  }
 
   if (configured === "sora") {
     return "sora";
   }
 
-  // Default to veo
-  return "veo";
+  throw new Error(
+    `Invalid PREFERRED_VIDEO_API value: "${process.env.PREFERRED_VIDEO_API}". Valid options are "veo" or "sora".`
+  );
 }
 
 /**
