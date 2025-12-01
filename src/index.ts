@@ -4,9 +4,14 @@
  * Generates AI news content and posts to X with video:
  * 1. Search for latest AI news (Tavily)
  * 2. Select topic and generate content (OpenRouter LLM)
- * 3. Generate image (Google Nano Banana Pro)
- * 4. Generate video from image (OpenAI Sora 2)
+ * 3. Generate image (Google Gemini)
+ * 4. Generate video from image (Google Veo 3.1 or OpenAI Sora 2)
  * 5. Post to X with video
+ *
+ * Video API selection:
+ * - Set PREFERRED_VIDEO_API to "veo" (default) or "sora"
+ * - Veo uses same Google credentials as image generation
+ * - Sora requires OPENAI_API_KEY
  *
  * All intermediate results are stored in Cloudflare R2 for replay/manual posting.
  */
@@ -17,7 +22,7 @@ dotenv.config();
 import { searchAINews } from "./services/search";
 import { generateContent } from "./services/llm";
 import { generateImage, cleanupImage } from "./services/image";
-import { generateVideo, cleanupVideo } from "./services/video";
+import { generateVideo, cleanupVideo, getVideoApiProvider, getProviderDisplayName } from "./services/video-api";
 import { createVideoPost, createImagePost } from "./services/x";
 import {
   isR2Configured,
@@ -43,6 +48,7 @@ async function generatePost(): Promise<void> {
   console.info("Social Compliance Generator v2.0");
   console.info(`Started at: ${new Date().toISOString()}`);
   console.info(`Run ID: ${runId}`);
+  console.info(`Video API: ${getProviderDisplayName(getVideoApiProvider())}`);
   if (isR2Configured()) {
     console.info("Workflow storage: Cloudflare R2 (enabled)");
   } else {
@@ -109,14 +115,18 @@ async function generatePost(): Promise<void> {
     await saveWorkflowMetadata(workflow);
 
     // Step 4: Generate video from image
-    console.info("\n[Step 4/5] Generating video with Sora 2...");
+    const preferredProvider = getVideoApiProvider();
+    const preferredProviderName = getProviderDisplayName(preferredProvider);
+    console.info(`\n[Step 4/5] Generating video with ${preferredProviderName}...`);
     workflow.videoGeneration.status = "in_progress";
     workflow.videoGeneration.startedAt = new Date().toISOString();
-    workflow.videoGeneration.data = { prompt: content.videoPrompt };
+    workflow.videoGeneration.data = { prompt: content.videoPrompt, provider: preferredProvider };
     await saveWorkflowMetadata(workflow);
 
     try {
-      videoPath = await generateVideo(imagePath, content.videoPrompt);
+      const videoResult = await generateVideo(imagePath, content.videoPrompt);
+      videoPath = videoResult.videoPath;
+      const actualProvider = videoResult.provider;
 
       // Save video to R2
       const videoKey = await saveWorkflowVideo(runId, videoPath);
@@ -125,6 +135,7 @@ async function generatePost(): Promise<void> {
       workflow.videoGeneration.completedAt = new Date().toISOString();
       workflow.videoGeneration.data = {
         prompt: content.videoPrompt,
+        provider: actualProvider,
         videoKey,
       };
       await saveWorkflowMetadata(workflow);
