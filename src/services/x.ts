@@ -62,11 +62,21 @@ interface TweetResponse {
   };
 }
 
+interface TweetRequest {
+  text: string;
+  media?: {
+    media_ids: string[];
+  };
+}
+
+// Maximum time to wait for media processing (10 minutes)
+const MAX_PROCESSING_WAIT_MS = 600000;
+
 // Global token store for the session
 let tokenStore: TokenStore | null = null;
 
 /**
- * Get the current access token, refreshing if necessary
+ * Get the current access token from storage
  */
 async function getAccessToken(): Promise<string> {
   if (!tokenStore) {
@@ -110,7 +120,13 @@ async function refreshAccessToken(): Promise<string> {
     throw new Error(`Failed to refresh token: ${response.status}`);
   }
 
-  const data = await response.json() as TokenRefreshResponse;
+  let data: TokenRefreshResponse;
+  try {
+    data = await response.json() as TokenRefreshResponse;
+  } catch (e) {
+    console.error("Failed to parse token refresh response:", e);
+    throw new Error("Invalid JSON response from token refresh endpoint");
+  }
 
   tokenStore.accessToken = data.access_token;
   if (data.refresh_token) {
@@ -178,7 +194,14 @@ async function initMediaUpload(
     throw new Error(`Failed to initialize media upload: ${response.status} - ${errorText}`);
   }
 
-  const data = await response.json() as MediaInitResponse;
+  let data: MediaInitResponse;
+  try {
+    data = await response.json() as MediaInitResponse;
+  } catch (e) {
+    console.error("Failed to parse media upload INIT response:", e);
+    throw new Error("Invalid JSON response from media upload INIT endpoint");
+  }
+
   const mediaId = data.media_id_string || data.id;
   console.info(`Media upload initialized, media_id: ${mediaId}`);
 
@@ -240,9 +263,15 @@ async function finalizeMediaUpload(mediaId: string): Promise<MediaStatusResponse
     throw new Error(`Failed to finalize media upload: ${response.status} - ${errorText}`);
   }
 
-  const data = await response.json() as MediaStatusResponse;
-  console.info("Media upload finalized");
+  let data: MediaStatusResponse;
+  try {
+    data = await response.json() as MediaStatusResponse;
+  } catch (e) {
+    console.error("Failed to parse media upload FINALIZE response:", e);
+    throw new Error("Invalid JSON response from media upload FINALIZE endpoint");
+  }
 
+  console.info("Media upload finalized");
   return data;
 }
 
@@ -262,20 +291,32 @@ async function checkMediaStatus(mediaId: string): Promise<MediaStatusResponse> {
     throw new Error(`Failed to check media status: ${response.status} - ${errorText}`);
   }
 
-  return response.json() as Promise<MediaStatusResponse>;
+  try {
+    const data = await response.json() as MediaStatusResponse;
+    return data;
+  } catch (e) {
+    console.error("Failed to parse media status response:", e);
+    throw new Error("Invalid JSON response from media status endpoint");
+  }
 }
 
 /**
- * Wait for media processing to complete
+ * Wait for media processing to complete with timeout protection
  */
 async function waitForMediaProcessing(
   mediaId: string,
   processingInfo: NonNullable<MediaStatusResponse["processing_info"]>
 ): Promise<void> {
+  const startTime = Date.now();
   let state = processingInfo.state;
   let checkAfterSecs = processingInfo.check_after_secs || 5;
 
   while (state === "pending" || state === "in_progress") {
+    // Check for timeout
+    if (Date.now() - startTime > MAX_PROCESSING_WAIT_MS) {
+      throw new Error("Media processing timeout exceeded (10 minutes)");
+    }
+
     console.info(`Media processing state: ${state}, waiting ${checkAfterSecs}s...`);
     await new Promise(resolve => setTimeout(resolve, checkAfterSecs * 1000));
 
@@ -309,7 +350,7 @@ async function uploadMediaV2(
   mediaType: string,
   mediaCategory: string
 ): Promise<string> {
-  const fileBuffer = fs.readFileSync(filePath);
+  const fileBuffer = await fs.promises.readFile(filePath);
   const totalBytes = fileBuffer.length;
 
   console.info(`Uploading media: ${filePath} (${totalBytes} bytes)`);
@@ -344,7 +385,7 @@ async function uploadMediaV2(
  * Post a tweet using X API v2
  */
 async function postTweet(text: string, mediaIds?: string[]): Promise<string> {
-  const body: any = { text };
+  const body: TweetRequest = { text };
 
   if (mediaIds && mediaIds.length > 0) {
     body.media = { media_ids: mediaIds };
@@ -364,7 +405,14 @@ async function postTweet(text: string, mediaIds?: string[]): Promise<string> {
     throw new Error(`Failed to post tweet: ${response.status} - ${errorText}`);
   }
 
-  const data = await response.json() as TweetResponse;
+  let data: TweetResponse;
+  try {
+    data = await response.json() as TweetResponse;
+  } catch (e) {
+    console.error("Failed to parse tweet response:", e);
+    throw new Error("Invalid JSON response from tweet endpoint");
+  }
+
   return data.data.id;
 }
 
@@ -409,9 +457,12 @@ export async function createVideoPost(
     console.info(`Post ID: ${tweetId}`);
 
     return tweetId;
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error(`Error posting to ${PLATFORM_NAME}:`, error);
-    throw new Error(`Failed to post to ${PLATFORM_NAME}: ${error.message}`);
+    const message = error && typeof error === "object" && "message" in error
+      ? (error as Error).message
+      : String(error);
+    throw new Error(`Failed to post to ${PLATFORM_NAME}: ${message}`);
   }
 }
 
@@ -441,8 +492,11 @@ export async function createImagePost(
     console.info(`Post ID: ${tweetId}`);
 
     return tweetId;
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error(`Error posting to ${PLATFORM_NAME}:`, error);
-    throw new Error(`Failed to post to ${PLATFORM_NAME}: ${error.message}`);
+    const message = error && typeof error === "object" && "message" in error
+      ? (error as Error).message
+      : String(error);
+    throw new Error(`Failed to post to ${PLATFORM_NAME}: ${message}`);
   }
 }
