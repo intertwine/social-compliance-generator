@@ -13,7 +13,13 @@ const PLATFORM_NAME = "X.com";
 
 // X API v2 endpoints
 const X_API_BASE = "https://api.x.com";
-const MEDIA_UPLOAD_ENDPOINT = `${X_API_BASE}/2/media/upload`;
+// New dedicated chunked upload endpoints (Jan 2025)
+const MEDIA_UPLOAD_INIT_ENDPOINT = `${X_API_BASE}/2/media/upload/initialize`;
+const MEDIA_UPLOAD_APPEND_ENDPOINT = `${X_API_BASE}/2/media/upload`; // /{id}/append
+const MEDIA_UPLOAD_FINALIZE_ENDPOINT = `${X_API_BASE}/2/media/upload`; // /{id}/finalize
+const MEDIA_UPLOAD_STATUS_ENDPOINT = `${X_API_BASE}/2/media/upload`; // /{id}
+// Simple upload endpoint (images only)
+const MEDIA_UPLOAD_SIMPLE_ENDPOINT = `${X_API_BASE}/2/media/upload`;
 const TWEETS_ENDPOINT = `${X_API_BASE}/2/tweets`;
 
 // Post configuration
@@ -168,7 +174,7 @@ async function xApiRequest(
 }
 
 /**
- * Initialize a chunked media upload (v2 API)
+ * Initialize a chunked media upload (v2 API - new dedicated endpoint)
  */
 async function initMediaUpload(
   totalBytes: number,
@@ -178,12 +184,11 @@ async function initMediaUpload(
   console.info(`Initializing media upload: ${totalBytes} bytes, ${mediaType}, ${mediaCategory}`);
 
   const formData = new FormData();
-  formData.append("command", "INIT");
-  formData.append("total_bytes", totalBytes.toString());
   formData.append("media_type", mediaType);
+  formData.append("total_bytes", totalBytes.toString());
   formData.append("media_category", mediaCategory);
 
-  const response = await xApiRequest(MEDIA_UPLOAD_ENDPOINT, {
+  const response = await xApiRequest(MEDIA_UPLOAD_INIT_ENDPOINT, {
     method: "POST",
     body: formData,
   });
@@ -213,7 +218,7 @@ async function initMediaUpload(
 }
 
 /**
- * Append a chunk to the media upload (v2 API)
+ * Append a chunk to the media upload (v2 API - new dedicated endpoint)
  */
 async function appendMediaChunk(
   mediaId: string,
@@ -223,12 +228,11 @@ async function appendMediaChunk(
   console.info(`Uploading chunk ${segmentIndex} (${chunk.length} bytes)...`);
 
   const formData = new FormData();
-  formData.append("command", "APPEND");
-  formData.append("media_id", mediaId);
-  formData.append("segment_index", segmentIndex.toString());
   formData.append("media", new Blob([chunk]));
+  formData.append("segment_index", segmentIndex.toString());
 
-  const response = await xApiRequest(MEDIA_UPLOAD_ENDPOINT, {
+  const appendUrl = `${MEDIA_UPLOAD_APPEND_ENDPOINT}/${mediaId}/append`;
+  const response = await xApiRequest(appendUrl, {
     method: "POST",
     body: formData,
   });
@@ -243,18 +247,14 @@ async function appendMediaChunk(
 }
 
 /**
- * Finalize the media upload (v2 API)
+ * Finalize the media upload (v2 API - new dedicated endpoint)
  */
 async function finalizeMediaUpload(mediaId: string): Promise<MediaStatusResponse> {
   console.info("Finalizing media upload...");
 
-  const formData = new FormData();
-  formData.append("command", "FINALIZE");
-  formData.append("media_id", mediaId);
-
-  const response = await xApiRequest(MEDIA_UPLOAD_ENDPOINT, {
+  const finalizeUrl = `${MEDIA_UPLOAD_FINALIZE_ENDPOINT}/${mediaId}/finalize`;
+  const response = await xApiRequest(finalizeUrl, {
     method: "POST",
-    body: formData,
   });
 
   if (!response.ok) {
@@ -276,12 +276,12 @@ async function finalizeMediaUpload(mediaId: string): Promise<MediaStatusResponse
 }
 
 /**
- * Check the status of media processing (v2 API)
+ * Check the status of media processing (v2 API - new dedicated endpoint)
  */
 async function checkMediaStatus(mediaId: string): Promise<MediaStatusResponse> {
-  const url = `${MEDIA_UPLOAD_ENDPOINT}?command=STATUS&media_id=${mediaId}`;
+  const statusUrl = `${MEDIA_UPLOAD_STATUS_ENDPOINT}/${mediaId}`;
 
-  const response = await xApiRequest(url, {
+  const response = await xApiRequest(statusUrl, {
     method: "GET",
   });
 
@@ -443,9 +443,9 @@ export async function createVideoPost(
   console.info(`Creating video post on ${PLATFORM_NAME}...`);
 
   try {
-    // Upload video using v2 API
+    // Upload video using v2 API (amplify_video category for video uploads)
     console.info("Uploading video to X...");
-    const mediaId = await uploadMediaV2(videoPath, "video/mp4", "tweet_video");
+    const mediaId = await uploadMediaV2(videoPath, "video/mp4", "amplify_video");
 
     // Create post with media
     const formattedText = formatPostContent(content);

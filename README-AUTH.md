@@ -16,11 +16,57 @@ Follow the steps below to set up an automated bot account on X.com and obtain au
 
 1. Generate authentication tokens using one of the methods below:
 
-#### Option A: GitHub Actions Workflow (Recommended)
+#### Option A: xurl CLI (Recommended)
+
+Use the official [xurl CLI](https://github.com/xdevplatform/xurl) from the X Developer Platform - the simplest method.
+
+##### Prerequisites
+
+Configure your X App's redirect URI in the X Developer Portal to: `http://localhost:8080/callback`
+
+##### Step 1: Install xurl
+
+```shell
+curl -fsSL https://raw.githubusercontent.com/xdevplatform/xurl/main/install.sh | sudo bash
+```
+
+##### Step 2: Run OAuth 2.0 Flow
+
+```shell
+export CLIENT_ID=your_client_id
+export CLIENT_SECRET=your_client_secret
+xurl auth oauth2
+```
+
+This opens a browser for authorization and automatically handles the token exchange.
+
+##### Step 3: Retrieve Tokens
+
+Tokens are stored in `~/.xurl`. You can verify authentication worked:
+
+```shell
+xurl /2/users/me
+```
+
+Extract the tokens from `~/.xurl` and add them to your `.env` file and GitHub secrets.
+
+##### Bonus: Test API Calls
+
+xurl can also be used to test X API endpoints directly:
+
+```shell
+# Get your user info
+xurl /2/users/me
+
+# Post a tweet
+xurl -X POST /2/tweets -d '{"text":"Hello from xurl!"}'
+```
+
+#### Option B: GitHub Actions Workflow
 
 Use the built-in GitHub Actions workflow to generate tokens without running a local server.
 
-##### Prerequisites
+##### GitHub Secrets Setup
 
 Configure these GitHub secrets in your repository (Settings → Secrets and variables → Actions):
 
@@ -66,7 +112,7 @@ Add/update these GitHub secrets:
 
 For local development, also add them to your `.env` file.
 
-#### Option B: Local xauth Server
+#### Option C: Local xauth Server
 
 Use the xauth submodule to generate tokens via a local OAuth server.
 
