@@ -30,6 +30,7 @@ export async function generateVideo(
   prompt: string
 ): Promise<string> {
   const apiKey = process.env.OPENAI_API_KEY;
+  const orgId = process.env.OPENAI_ORG_ID;
 
   if (!apiKey) {
     throw new Error("OPENAI_API_KEY environment variable is required");
@@ -37,38 +38,34 @@ export async function generateVideo(
 
   console.info(`Generating video with Sora 2: "${prompt.substring(0, 100)}..."`);
 
-  // Read image and convert to base64
+  // Read image file
   const imageBuffer = fs.readFileSync(imagePath);
-  const base64Image = imageBuffer.toString("base64");
   const mimeType = imagePath.endsWith(".png") ? "image/png" : "image/jpeg";
+  const fileName = path.basename(imagePath);
 
-  // Create video generation job via REST API
+  // Create video generation job via REST API using multipart form data
   console.info("Creating Sora video generation job...");
 
-  const createResponse = await fetch(`${OPENAI_API_BASE}/videos/generations`, {
+  // Build headers, optionally including organization ID
+  const headers: Record<string, string> = {
+    "Authorization": `Bearer ${apiKey}`,
+  };
+  if (orgId) {
+    headers["OpenAI-Organization"] = orgId;
+  }
+
+  // Use FormData for multipart request (like image uploads)
+  const formData = new FormData();
+  formData.append("model", SORA_MODEL);
+  formData.append("prompt", prompt);
+  formData.append("seconds", "4"); // Shorter clips have better quality
+  formData.append("size", "1280x720");
+  formData.append("input_reference", new Blob([imageBuffer], { type: mimeType }), fileName);
+
+  const createResponse = await fetch(`${OPENAI_API_BASE}/videos`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model: SORA_MODEL,
-      input: [
-        {
-          type: "image_url",
-          image_url: {
-            url: `data:${mimeType};base64,${base64Image}`,
-          },
-        },
-        {
-          type: "text",
-          text: prompt,
-        },
-      ],
-      duration: 8,
-      resolution: "720p",
-      aspect_ratio: "16:9",
-    }),
+    headers,
+    body: formData,
   });
 
   if (!createResponse.ok) {
@@ -80,7 +77,7 @@ export async function generateVideo(
   console.info(`Video generation job created: ${job.id}`);
 
   // Poll for completion
-  const videoUrl = await pollForCompletion(apiKey, job.id);
+  const videoUrl = await pollForCompletion(apiKey, job.id, orgId);
 
   // Download video
   const videoPath = await downloadVideo(videoUrl);
@@ -93,18 +90,25 @@ export async function generateVideo(
  */
 async function pollForCompletion(
   apiKey: string,
-  jobId: string
+  jobId: string,
+  orgId?: string
 ): Promise<string> {
   const startTime = Date.now();
+
+  // Build headers, optionally including organization ID
+  const headers: Record<string, string> = {
+    "Authorization": `Bearer ${apiKey}`,
+  };
+  if (orgId) {
+    headers["OpenAI-Organization"] = orgId;
+  }
 
   while (Date.now() - startTime < MAX_POLL_TIME_MS) {
     console.info(`Polling video job status: ${jobId}`);
 
-    const response = await fetch(`${OPENAI_API_BASE}/videos/generations/${jobId}`, {
+    const response = await fetch(`${OPENAI_API_BASE}/videos/${jobId}`, {
       method: "GET",
-      headers: {
-        "Authorization": `Bearer ${apiKey}`,
-      },
+      headers,
     });
 
     if (!response.ok) {
