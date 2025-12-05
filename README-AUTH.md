@@ -1,7 +1,6 @@
 # Generating API and Social Media Auth Tokens for Social Compliance Generator
 
-To set up and run the project, you will need to generate authentication tokens for the following APIs
-and social media platforms and add them to your local `.env` file:
+To set up and run the project, you will need to generate authentication tokens for the following APIs and social media platforms and add them to your local `.env` file:
 
 ## Social Media Platforms
 
@@ -11,11 +10,65 @@ Follow the steps below to set up an automated bot account on X.com and obtain au
 
 1. (Highly recommended) Create an automated bot account on X.com to comply with X's [Terms of Service](https://developer.x.com/en/more/developer-terms).
 
-    - Link your main X account to the bot account using Step 1 of the [X developer tutorial](https://developer.x.com/en/docs/tutorials/creating-a-twitter-bot-with-python--oauth-2-0--and-v2-of-the-twi).
+   - Link your main X account to the bot account using Step 1 of the [X developer tutorial](https://developer.x.com/en/docs/tutorials/creating-a-twitter-bot-with-python--oauth-2-0--and-v2-of-the-twi).
 
 1. In your main X.com account, create a developer account, configure an X App and obtain consumer keys by [following this tutorial](https://developer.x.com/en/docs/tutorials/step-by-step-guide-to-making-your-first-request-to-the-twitter-api-v2)
 
-1. Use the Xauth submodule to generate the authentication tokens for your X.com Bot account. Follow the steps below:
+1. Generate authentication tokens using one of the methods below:
+
+#### Option A: GitHub Actions Workflow (Recommended)
+
+Use the built-in GitHub Actions workflow to generate tokens without running a local server.
+
+##### Prerequisites
+
+Configure these GitHub secrets in your repository (Settings → Secrets and variables → Actions):
+
+- `X_API_CLIENT_ID` - Your X API app's client ID
+- `X_API_CLIENT_SECRET` - Your X API app's client secret
+
+##### Step 1: Generate Authorization URL
+
+1. Go to **Actions** → **X OAuth Token Generator**
+2. Click **Run workflow** and leave the `callback_url` input empty
+3. Run the workflow and view the output
+
+The output will display:
+
+- An authorization URL to open in your browser
+- A `CODE_VERIFIER` value - **copy and save this!**
+
+##### Step 2: Authorize and Get Callback URL
+
+1. Open the authorization URL in your browser
+2. Log in and authorize the app with your X account
+3. You'll be redirected to `http://127.0.0.1:3000/callback?state=...&code=...`
+4. The page won't load - that's expected! Copy the **entire URL** from your address bar
+
+##### Step 3: Exchange for Tokens
+
+1. Take the callback URL you copied and append the code verifier:
+
+   ```text
+   http://127.0.0.1:3000/callback?state=...&code=...&code_verifier=YOUR_CODE_VERIFIER_HERE
+   ```
+
+2. Run the **X OAuth Token Generator** workflow again
+3. Paste the full URL (with `&code_verifier=...` appended) into the `callback_url` input
+4. The workflow will output your `X_API_ACCESS_TOKEN` and `X_API_REFRESH_TOKEN`
+
+##### Step 4: Save the Tokens
+
+Add/update these GitHub secrets:
+
+- `X_API_ACCESS_TOKEN`
+- `X_API_REFRESH_TOKEN`
+
+For local development, also add them to your `.env` file.
+
+#### Option B: Local xauth Server
+
+Use the xauth submodule to generate tokens via a local OAuth server.
 
 ```shell
 # In the root directory of this repository:
@@ -41,7 +94,7 @@ Open your browser to <http://localhost:5001/oauth2>
 
 Once you have the access token and refresh token, you can stop the xauth server. (Ctrl+C)
 
-*The xauth submodule is modified from: <https://github.com/alkihis/twitter-api-v2-user-oauth-flow-example.git>*
+_The xauth submodule is modified from: <https://github.com/alkihis/twitter-api-v2-user-oauth-flow-example.git>_
 
 ### Facebook
 
