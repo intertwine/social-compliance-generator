@@ -52,6 +52,11 @@ interface TokenRefreshResponse {
 interface MediaInitResponse {
   media_id_string?: string;
   id?: string;
+  // v2 API response format
+  data?: {
+    id?: string;
+    media_key?: string;
+  };
 }
 
 interface MediaStatusResponse {
@@ -209,11 +214,15 @@ async function initMediaUpload(
     throw new Error("Invalid JSON response from media upload INIT endpoint");
   }
 
-  const mediaId = data.media_id_string || data.id;
+  // Log the full response to debug the structure
+  console.info("Media upload INIT response:", JSON.stringify(data, null, 2));
+
+  // Try different response formats (v1.1 vs v2)
+  const mediaId = data.media_id_string || data.id || data.data?.id;
   console.info(`Media upload initialized, media_id: ${mediaId}`);
 
   if (!mediaId) {
-    throw new Error("No media_id returned from INIT");
+    throw new Error(`No media_id returned from INIT. Response: ${JSON.stringify(data)}`);
   }
 
   return mediaId;
