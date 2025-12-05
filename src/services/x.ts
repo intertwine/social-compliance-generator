@@ -183,14 +183,16 @@ async function initMediaUpload(
 ): Promise<string> {
   console.info(`Initializing media upload: ${totalBytes} bytes, ${mediaType}, ${mediaCategory}`);
 
-  const formData = new FormData();
-  formData.append("media_type", mediaType);
-  formData.append("total_bytes", totalBytes.toString());
-  formData.append("media_category", mediaCategory);
-
   const response = await xApiRequest(MEDIA_UPLOAD_INIT_ENDPOINT, {
     method: "POST",
-    body: formData,
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      media_type: mediaType,
+      total_bytes: totalBytes,
+      media_category: mediaCategory,
+    }),
   });
 
   if (!response.ok) {
