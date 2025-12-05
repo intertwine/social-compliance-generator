@@ -31,8 +31,8 @@ const POST_LINKS = [
   },
 ];
 
-// Chunk size for video uploads (5MB is recommended)
-const CHUNK_SIZE = 5 * 1024 * 1024;
+// Chunk size for video uploads (1MB for v2 API compatibility)
+const CHUNK_SIZE = 1 * 1024 * 1024;
 
 interface PostLink {
   title: string;
