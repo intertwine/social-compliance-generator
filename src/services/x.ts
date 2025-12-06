@@ -65,6 +65,16 @@ interface MediaStatusResponse {
     check_after_secs?: number;
     progress_percent?: number;
   };
+  // v2 API response format
+  data?: {
+    id?: string;
+    media_key?: string;
+    processing_info?: {
+      state: string;
+      check_after_secs?: number;
+      progress_percent?: number;
+    };
+  };
 }
 
 interface TweetResponse {
@@ -282,6 +292,7 @@ async function finalizeMediaUpload(mediaId: string): Promise<MediaStatusResponse
     throw new Error("Invalid JSON response from media upload FINALIZE endpoint");
   }
 
+  console.info("Media upload FINALIZE response:", JSON.stringify(data, null, 2));
   console.info("Media upload finalized");
   return data;
 }
@@ -304,6 +315,7 @@ async function checkMediaStatus(mediaId: string): Promise<MediaStatusResponse> {
 
   try {
     const data = await response.json() as MediaStatusResponse;
+    console.info("Media status response:", JSON.stringify(data, null, 2));
     return data;
   } catch (e) {
     console.error("Failed to parse media status response:", e);
@@ -333,12 +345,14 @@ async function waitForMediaProcessing(
 
     const status = await checkMediaStatus(mediaId);
 
-    if (status.processing_info) {
-      state = status.processing_info.state;
-      checkAfterSecs = status.processing_info.check_after_secs || 5;
+    // Check both v1.1 and v2 response formats
+    const statusProcessingInfo = status.processing_info || status.data?.processing_info;
+    if (statusProcessingInfo) {
+      state = statusProcessingInfo.state;
+      checkAfterSecs = statusProcessingInfo.check_after_secs || 5;
 
-      if (status.processing_info.progress_percent) {
-        console.info(`Processing progress: ${status.processing_info.progress_percent}%`);
+      if (statusProcessingInfo.progress_percent) {
+        console.info(`Processing progress: ${statusProcessingInfo.progress_percent}%`);
       }
     } else {
       // No processing_info means processing is complete
@@ -384,8 +398,14 @@ async function uploadMediaV2(
   const finalizeResult = await finalizeMediaUpload(mediaId);
 
   // Step 4: Wait for processing if needed (videos require async processing)
-  if (finalizeResult.processing_info) {
-    await waitForMediaProcessing(mediaId, finalizeResult.processing_info);
+  // Check both v1.1 and v2 response formats
+  const processingInfo = finalizeResult.processing_info || finalizeResult.data?.processing_info;
+  if (processingInfo) {
+    await waitForMediaProcessing(mediaId, processingInfo);
+  } else {
+    // Even if no processing_info, wait a moment for the media to be ready
+    console.info("No processing_info in response, waiting 5s for media to be ready...");
+    await new Promise(resolve => setTimeout(resolve, 5000));
   }
 
   console.info(`Media uploaded successfully, media_id: ${mediaId}`);
