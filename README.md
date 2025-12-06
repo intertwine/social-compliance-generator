@@ -312,6 +312,20 @@ If you're seeing R2-related errors:
 - Check that the bucket name matches exactly (case-sensitive)
 - R2 storage is optional - workflows will continue without it if not configured
 
+### X video upload issues
+
+The X API v2 video upload uses chunked uploads with dedicated endpoints (as of January 2025):
+
+- **413 Payload Too Large**: Videos are uploaded in 1MB chunks. If you see this error, the chunk size may need adjustment.
+- **Invalid media IDs**: After upload, videos need processing time (10-60 seconds depending on size). The system waits automatically.
+- **Rate limits**: Free tier has low limits (17 initialize/finalize per 24h, 85 appends). Consider upgrading your X API tier for production use.
+
+Technical details:
+
+- Endpoints: `/2/media/upload/initialize`, `/{id}/append`, `/{id}/finalize`
+- Media category: `amplify_video` (required for video uploads)
+- Authentication: OAuth 2.0 with `media.write` scope
+
 ### Rate limits
 
 OpenRouter and other APIs have rate limits. If you're hitting limits, consider:

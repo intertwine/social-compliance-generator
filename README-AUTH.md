@@ -6,7 +6,11 @@ To set up and run the project, you will need to generate authentication tokens f
 
 ### X.com
 
-Follow the steps below to set up an automated bot account on X.com and obtain authentication tokens for posting to the platform:
+Follow the steps below to set up an automated bot account on X.com and obtain authentication tokens for posting to the platform.
+
+**Required OAuth Scopes:** `tweet.read`, `tweet.write`, `users.read`, `offline.access`, `media.write`
+
+The `media.write` scope is required for video uploads. If you're getting 403 errors on media upload, re-authorize with all scopes.
 
 1. (Highly recommended) Create an automated bot account on X.com to comply with X's [Terms of Service](https://developer.x.com/en/more/developer-terms).
 
