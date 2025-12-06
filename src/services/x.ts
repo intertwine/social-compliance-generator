@@ -325,47 +325,27 @@ async function checkMediaStatus(mediaId: string): Promise<MediaStatusResponse> {
 }
 
 /**
- * Wait for media processing to complete with timeout protection
+ * Wait for media processing to complete
+ * Note: The v2 API doesn't have a working status endpoint yet, so we wait a fixed time
+ * based on the check_after_secs hint and video size
  */
 async function waitForMediaProcessing(
   mediaId: string,
-  processingInfo: NonNullable<MediaStatusResponse["processing_info"]>
+  processingInfo: NonNullable<MediaStatusResponse["processing_info"]>,
+  totalBytes?: number
 ): Promise<void> {
-  const startTime = Date.now();
-  let state = processingInfo.state;
-  let checkAfterSecs = processingInfo.check_after_secs || 5;
+  // Calculate wait time based on video size and API hints
+  // Minimum 5 seconds, add 1 second per MB, cap at 60 seconds
+  const baseWait = processingInfo.check_after_secs || 5;
+  const sizeBasedWait = totalBytes ? Math.ceil(totalBytes / (1024 * 1024)) : 5;
+  const totalWait = Math.min(Math.max(baseWait + sizeBasedWait, 10), 60);
 
-  while (state === "pending" || state === "in_progress") {
-    // Check for timeout
-    if (Date.now() - startTime > MAX_PROCESSING_WAIT_MS) {
-      throw new Error("Media processing timeout exceeded (10 minutes)");
-    }
+  console.info(`Media processing state: ${processingInfo.state}`);
+  console.info(`Waiting ${totalWait}s for video processing to complete...`);
 
-    console.info(`Media processing state: ${state}, waiting ${checkAfterSecs}s...`);
-    await new Promise(resolve => setTimeout(resolve, checkAfterSecs * 1000));
+  await new Promise(resolve => setTimeout(resolve, totalWait * 1000));
 
-    const status = await checkMediaStatus(mediaId);
-
-    // Check both v1.1 and v2 response formats
-    const statusProcessingInfo = status.processing_info || status.data?.processing_info;
-    if (statusProcessingInfo) {
-      state = statusProcessingInfo.state;
-      checkAfterSecs = statusProcessingInfo.check_after_secs || 5;
-
-      if (statusProcessingInfo.progress_percent) {
-        console.info(`Processing progress: ${statusProcessingInfo.progress_percent}%`);
-      }
-    } else {
-      // No processing_info means processing is complete
-      state = "succeeded";
-    }
-  }
-
-  if (state === "failed") {
-    throw new Error("Media processing failed");
-  }
-
-  console.info("Media processing completed successfully");
+  console.info("Wait complete, proceeding with tweet post");
 }
 
 /**
@@ -402,11 +382,11 @@ async function uploadMediaV2(
   // Check both v1.1 and v2 response formats
   const processingInfo = finalizeResult.processing_info || finalizeResult.data?.processing_info;
   if (processingInfo) {
-    await waitForMediaProcessing(mediaId, processingInfo);
+    await waitForMediaProcessing(mediaId, processingInfo, totalBytes);
   } else {
     // Even if no processing_info, wait a moment for the media to be ready
-    console.info("No processing_info in response, waiting 5s for media to be ready...");
-    await new Promise(resolve => setTimeout(resolve, 5000));
+    console.info("No processing_info in response, waiting 10s for media to be ready...");
+    await new Promise(resolve => setTimeout(resolve, 10000));
   }
 
   console.info(`Media uploaded successfully, media_id: ${mediaId}`);
