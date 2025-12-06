@@ -301,7 +301,8 @@ async function finalizeMediaUpload(mediaId: string): Promise<MediaStatusResponse
  * Check the status of media processing (v2 API - new dedicated endpoint)
  */
 async function checkMediaStatus(mediaId: string): Promise<MediaStatusResponse> {
-  const statusUrl = `${MEDIA_UPLOAD_STATUS_ENDPOINT}/${mediaId}`;
+  // Try /status suffix for the new v2 endpoint
+  const statusUrl = `${MEDIA_UPLOAD_STATUS_ENDPOINT}/${mediaId}/status`;
 
   const response = await xApiRequest(statusUrl, {
     method: "GET",
