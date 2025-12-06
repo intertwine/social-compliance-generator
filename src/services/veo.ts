@@ -118,7 +118,7 @@ async function tryGenerateWithModel(
     },
     config: {
       numberOfVideos: 1,
-      durationSeconds: 8,
+      durationSeconds: 10,
       aspectRatio: "16:9",
       resolution: "720p",
       personGeneration: "allow_adult",
