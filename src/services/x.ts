@@ -23,7 +23,6 @@ const MEDIA_UPLOAD_SIMPLE_ENDPOINT = `${X_API_BASE}/2/media/upload`;
 const TWEETS_ENDPOINT = `${X_API_BASE}/2/tweets`;
 
 // Post configuration
-const POST_TAGS = ["AINews", "ArtificialIntelligence"];
 const POST_LINKS = [
   {
     title: "AI Drop of the Week",
@@ -326,26 +325,25 @@ async function checkMediaStatus(mediaId: string): Promise<MediaStatusResponse> {
 
 /**
  * Wait for media processing to complete
- * Note: The v2 API doesn't have a working status endpoint yet, so we wait a fixed time
- * based on the check_after_secs hint and video size
+ * Note: X API v2 status endpoint returns 404, so we estimate wait time based on file size
  */
 async function waitForMediaProcessing(
   mediaId: string,
   processingInfo: NonNullable<MediaStatusResponse["processing_info"]>,
-  totalBytes?: number
+  totalBytes: number
 ): Promise<void> {
-  // Calculate wait time based on video size and API hints
-  // Minimum 5 seconds, add 1 second per MB, cap at 60 seconds
-  const baseWait = processingInfo.check_after_secs || 5;
-  const sizeBasedWait = totalBytes ? Math.ceil(totalBytes / (1024 * 1024)) : 5;
-  const totalWait = Math.min(Math.max(baseWait + sizeBasedWait, 10), 60);
+  // Estimate processing time: ~10 seconds per MB, minimum 30 seconds for videos
+  const sizeMB = totalBytes / (1024 * 1024);
+  const estimatedWait = Math.max(30, Math.ceil(sizeMB * 10));
+  // Cap at 2 minutes
+  const waitTime = Math.min(estimatedWait, 120);
 
   console.info(`Media processing state: ${processingInfo.state}`);
-  console.info(`Waiting ${totalWait}s for video processing to complete...`);
+  console.info(`Video size: ${sizeMB.toFixed(1)}MB - waiting ${waitTime}s for processing...`);
 
-  await new Promise(resolve => setTimeout(resolve, totalWait * 1000));
+  await new Promise(resolve => setTimeout(resolve, waitTime * 1000));
 
-  console.info("Wait complete, proceeding with tweet post");
+  console.info("Processing wait complete, proceeding with post");
 }
 
 /**
@@ -383,10 +381,6 @@ async function uploadMediaV2(
   const processingInfo = finalizeResult.processing_info || finalizeResult.data?.processing_info;
   if (processingInfo) {
     await waitForMediaProcessing(mediaId, processingInfo, totalBytes);
-  } else {
-    // Even if no processing_info, wait a moment for the media to be ready
-    console.info("No processing_info in response, waiting 10s for media to be ready...");
-    await new Promise(resolve => setTimeout(resolve, 10000));
   }
 
   console.info(`Media uploaded successfully, media_id: ${mediaId}`);
@@ -429,20 +423,22 @@ async function postTweet(text: string, mediaIds?: string[]): Promise<string> {
 }
 
 /**
- * Format post content with tags and links
+ * Format post content with source URL and promo links
  */
 function formatPostContent(
   content: string,
-  tags: string[] = POST_TAGS,
+  sourceUrl?: string,
   links: PostLink[] = POST_LINKS
 ): string {
   const formattedContent = content.replace(/\n/g, " ").trim();
-  const formattedTags = tags.map((tag) => `#${tag}`).join(" ");
   const formattedLinks = links
     .map((link) => `${link.title}: ${link.url}`)
     .join("\n");
 
-  return `${formattedContent} ${formattedTags}\n\n${formattedLinks}`;
+  // Include source URL if provided
+  const sourceSection = sourceUrl ? `\n\nSource: ${sourceUrl}` : "";
+
+  return `${formattedContent}${sourceSection}\n\n${formattedLinks}`;
 }
 
 /**
@@ -450,7 +446,8 @@ function formatPostContent(
  */
 export async function createVideoPost(
   content: string,
-  videoPath: string
+  videoPath: string,
+  sourceUrl?: string
 ): Promise<string> {
   console.info(`Creating video post on ${PLATFORM_NAME}...`);
 
@@ -460,7 +457,7 @@ export async function createVideoPost(
     const mediaId = await uploadMediaV2(videoPath, "video/mp4", "amplify_video");
 
     // Create post with media
-    const formattedText = formatPostContent(content);
+    const formattedText = formatPostContent(content, sourceUrl);
     console.info("Posting to X...");
 
     const tweetId = await postTweet(formattedText, [mediaId]);
@@ -483,7 +480,8 @@ export async function createVideoPost(
  */
 export async function createImagePost(
   content: string,
-  imagePath: string
+  imagePath: string,
+  sourceUrl?: string
 ): Promise<string> {
   console.info(`Creating image post on ${PLATFORM_NAME} (fallback)...`);
 
@@ -495,7 +493,7 @@ export async function createImagePost(
     const mediaId = await uploadMediaV2(imagePath, mimeType, "tweet_image");
 
     // Create post with media
-    const formattedText = formatPostContent(content);
+    const formattedText = formatPostContent(content, sourceUrl);
     console.info("Posting to X...");
 
     const tweetId = await postTweet(formattedText, [mediaId]);

@@ -10,6 +10,7 @@ interface GeneratedContent {
   imagePrompt: string;
   videoPrompt: string;
   selectedTopic: string;
+  sourceUrl: string;
 }
 
 const OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions";
@@ -45,7 +46,9 @@ export async function generateContent(
 
 Be informative yet accessible. Avoid hype and clickbait. Focus on what makes this news genuinely interesting or impactful.
 
-IMPORTANT for visual prompts: Your image and video prompts should visually explain the selected news story as clearly and understandably as possible. Think about what visual elements would help someone immediately grasp the key concept or breakthrough being discussed. Use concrete visual metaphors, diagrams, or scenes that illustrate the core idea rather than abstract or decorative imagery.`;
+IMPORTANT for visual prompts: Your image and video prompts should visually explain the selected news story as clearly and understandably as possible. Think about what visual elements would help someone immediately grasp the key concept or breakthrough being discussed. Use concrete visual metaphors, diagrams, or scenes that illustrate the core idea rather than abstract or decorative imagery.
+
+CRITICAL for video prompts: Do NOT mention specific company or product names (like ChatGPT, OpenAI, Google, etc.) in video prompts - use generic descriptions instead (e.g., "AI chatbot interface" instead of "ChatGPT"). Avoid negative imagery like glitches, errors, failures, or distress. Focus on positive, constructive visual storytelling.`;
 
   const userPrompt = `Here are today's top AI news articles:
 
@@ -55,14 +58,15 @@ Based on these articles, please:
 1. Select the most interesting topic to post about
 2. Write an engaging social media post (max 200 characters, no hashtags - those will be added separately)
 3. Create an image generation prompt that visually explains the news story - focus on clarity and making the concept immediately understandable
-4. Create a video prompt that describes a 10-second dynamic video scene that illustrates and explains the key concept of the news story
+4. Create a video prompt that describes an 8-second dynamic video scene that illustrates and explains the key concept of the news story
 
 Respond ONLY with valid JSON in this exact format:
 {
   "selectedTopic": "Brief description of the topic you selected",
+  "sourceUrl": "The URL of the news article you selected",
   "postContent": "Your social media post text here",
   "imagePrompt": "Detailed prompt for image generation - focus on visually explaining the news concept clearly with concrete visual elements, metaphors, or diagrams that make the story immediately understandable",
-  "videoPrompt": "Detailed prompt for 10-second video generation - describe motion, scene, and visual storytelling that explains the news concept clearly, showing the key idea in action"
+  "videoPrompt": "Detailed prompt for 8-second video generation - describe motion, scene, and visual storytelling that explains the news concept clearly, showing the key idea in action. NO brand names, NO negative imagery."
 }`;
 
   const response = await fetch(OPENROUTER_API_URL, {

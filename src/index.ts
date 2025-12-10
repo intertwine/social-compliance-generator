@@ -163,10 +163,10 @@ async function generatePost(): Promise<void> {
     let postId: string;
 
     if (videoPath) {
-      postId = await createVideoPost(content.postContent, videoPath);
+      postId = await createVideoPost(content.postContent, videoPath, content.sourceUrl);
     } else {
       // Fallback to image-only post
-      postId = await createImagePost(content.postContent, imagePath);
+      postId = await createImagePost(content.postContent, imagePath, content.sourceUrl);
     }
 
     workflow.posting.status = "completed";

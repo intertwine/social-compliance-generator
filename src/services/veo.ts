@@ -118,7 +118,7 @@ async function tryGenerateWithModel(
     },
     config: {
       numberOfVideos: 1,
-      durationSeconds: 10,
+      durationSeconds: 8, // Max supported for image-to-video (options: 4, 6, 8)
       aspectRatio: "16:9",
       resolution: "720p",
       personGeneration: "allow_adult",
@@ -149,14 +149,14 @@ async function pollForCompletion(
       operation,
     });
 
+    // Check for errors first (can happen when done: true)
+    if (updatedOperation.error) {
+      throw new Error(`Video generation failed: ${updatedOperation.error.message || JSON.stringify(updatedOperation.error)}`);
+    }
+
     if (updatedOperation.done) {
       console.info("Video generation completed!");
       return updatedOperation;
-    }
-
-    // Check for errors
-    if (updatedOperation.error) {
-      throw new Error(`Video generation failed: ${JSON.stringify(updatedOperation.error)}`);
     }
 
     console.info(`Status: in progress - waiting ${POLL_INTERVAL_MS / 1000}s...`);
