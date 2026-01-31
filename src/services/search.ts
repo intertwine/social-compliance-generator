@@ -46,10 +46,10 @@ export async function searchAINews(): Promise<TavilySearchResult[]> {
     body: JSON.stringify({
       api_key: apiKey,
       query,
-      search_depth: "advanced",
+      search_depth: "basic",
       include_answer: false,
       include_raw_content: false,
-      max_results: 10,
+      max_results: 5,
       topic: "news",
     }),
   });
