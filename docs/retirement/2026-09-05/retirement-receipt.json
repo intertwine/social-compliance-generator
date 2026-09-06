@@ -1,0 +1,30 @@
+{
+  "verifiedAt": "2026-09-06T02:57:58.009507+00:00",
+  "repository": "social-compliance-generator",
+  "github": {
+    "actionsPermissions": {
+      "enabled": false,
+      "sha_pinning_required": false
+    },
+    "actionsSecretNames": [],
+    "metadata": {
+      "defaultBranchRef": {
+        "name": "main"
+      },
+      "isArchived": false,
+      "isPrivate": false,
+      "nameWithOwner": "intertwine/social-compliance-generator"
+    },
+    "environments": []
+  },
+  "notes": [
+    "Both named Social Compliance API keys deleted.",
+    "github-vertex-ai service account and two user-managed keys deleted after explicit ownership confirmation.",
+    "R2 social-compliance-generator permanently emptied and deleted: 775 objects, 1.71GB. No media backup was made; configuration archive only.",
+    "Vercel/Trigger/Supabase final disposition is maintained in the local retirement report."
+  ],
+  "additionalProviderResult": {
+    "trigger": "Project deleted; exact URL now redirects to new-project flow",
+    "supabase": "Paused, retained pending backup verification"
+  }
+}
