@@ -1,0 +1,21 @@
+{
+  "provider": "Supabase",
+  "projectRef": "towpjxzsmxllfuzimzaa",
+  "deleted": true,
+  "verification": "Deletion accepted; project absent from organization listing",
+  "backup": {
+    "database": {
+      "bytes": 26742,
+      "integrity": "gzip test passed"
+    },
+    "storage": {
+      "bytes": 10115338,
+      "integrity": "ZIP integrity test passed"
+    },
+    "location": "Private local retirement archive, outside Git",
+    "permissions": "directory0700 files0600",
+    "contentsInspected": false,
+    "restoreTestPerformed": false
+  },
+  "otherProjectsAndOrganization": "Preserved"
+}

@@ -25,6 +25,6 @@
   ],
   "additionalProviderResult": {
     "trigger": "Project deleted; exact URL now redirects to new-project flow",
-    "supabase": "Paused, retained pending backup verification"
+    "supabase": "Deleted after database and storage exports retained privately; see supabase-retirement.json"
   }
 }
