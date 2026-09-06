@@ -1,0 +1,140 @@
+{
+  "capturedAt": "2026-09-06T02:35:33.486946+00:00",
+  "scope": "Social Compliance configuration only; secret payloads omitted",
+  "apiKeys": [
+    {
+      "annotations": "[OMITTED]",
+      "createTime": "2025-11-25T22:36:30.358402Z",
+      "displayName": "Social Compliance GH V2",
+      "etag": "W/\"K4e/GFUcDaB02Zn2oBUDkA==\"",
+      "name": "projects/509953841199/locations/global/keys/6dd0da97-954e-404b-90b3-7aa499fae139",
+      "restrictions": {
+        "apiTargets": [
+          {
+            "service": "generativelanguage.googleapis.com"
+          }
+        ]
+      },
+      "uid": "6dd0da97-954e-404b-90b3-7aa499fae139",
+      "updateTime": "2025-11-25T22:36:30.412296Z"
+    },
+    {
+      "annotations": "[OMITTED]",
+      "createTime": "2025-11-25T22:13:16.778969Z",
+      "displayName": "Social Compliance GH Key",
+      "etag": "W/\"wKNxG10aiKnUSLOwqudMXw==\"",
+      "name": "projects/509953841199/locations/global/keys/207a6f28-b2ee-4ea5-9b98-2e33a0cdadc4",
+      "restrictions": {
+        "apiTargets": [
+          {
+            "service": "generativelanguage.googleapis.com"
+          }
+        ]
+      },
+      "uid": "207a6f28-b2ee-4ea5-9b98-2e33a0cdadc4",
+      "updateTime": "2025-11-25T22:13:16.832325Z"
+    }
+  ],
+  "serviceAccount": {
+    "disabled": false,
+    "displayName": "GitHub Actions Vertex AI",
+    "email": "github-vertex-ai@gptrigger-io.iam.gserviceaccount.com",
+    "etag": "MDEwMjE5MjA=",
+    "name": "projects/gptrigger-io/serviceAccounts/github-vertex-ai@gptrigger-io.iam.gserviceaccount.com",
+    "oauth2ClientId": "114768217505333598846",
+    "projectId": "gptrigger-io",
+    "uniqueId": "114768217505333598846"
+  },
+  "secretNames": [
+    {
+      "name": "CLOUDFLARE_ACCOUNT_ID",
+      "updatedAt": "2025-11-26T00:16:47Z"
+    },
+    {
+      "name": "CLOUDFLARE_KV_API_TOKEN",
+      "updatedAt": "2025-11-26T00:26:09Z"
+    },
+    {
+      "name": "CLOUDFLARE_KV_NAMESPACE_ID",
+      "updatedAt": "2025-11-26T00:37:42Z"
+    },
+    {
+      "name": "GOOGLE_CLOUD_CREDENTIALS",
+      "updatedAt": "2025-11-25T23:53:05Z"
+    },
+    {
+      "name": "GOOGLE_CLOUD_PROJECT",
+      "updatedAt": "2025-11-25T23:33:43Z"
+    },
+    {
+      "name": "OPENROUTER_API_KEY",
+      "updatedAt": "2025-11-25T22:07:08Z"
+    },
+    {
+      "name": "OPENROUTER_MODEL",
+      "updatedAt": "2026-01-31T14:44:50Z"
+    },
+    {
+      "name": "TAVILY_API_KEY",
+      "updatedAt": "2025-11-25T18:45:18Z"
+    },
+    {
+      "name": "X_API_ACCESS_TOKEN",
+      "updatedAt": "2025-12-10T06:56:34Z"
+    },
+    {
+      "name": "X_API_CLIENT_ID",
+      "updatedAt": "2025-12-05T13:01:31Z"
+    },
+    {
+      "name": "X_API_CLIENT_SECRET",
+      "updatedAt": "2025-12-05T13:01:53Z"
+    },
+    {
+      "name": "X_API_REFRESH_TOKEN",
+      "updatedAt": "2025-12-10T06:56:50Z"
+    }
+  ],
+  "workflowConfig": {
+    "total_count": 3,
+    "workflows": [
+      {
+        "id": 210059468,
+        "node_id": "W_kwDOMEhW084MhUDM",
+        "name": "Generate Social Post",
+        "path": ".github/workflows/generate-post.yml",
+        "state": "disabled_inactivity",
+        "created_at": "2025-11-24T21:23:53.000-05:00",
+        "updated_at": "2026-04-02T08:23:38.000-04:00",
+        "url": "https://api.github.com/repos/intertwine/social-compliance-generator/actions/workflows/210059468",
+        "html_url": "https://github.com/intertwine/social-compliance-generator/blob/main/.github/workflows/generate-post.yml",
+        "badge_url": "https://github.com/intertwine/social-compliance-generator/workflows/Generate%20Social%20Post/badge.svg"
+      },
+      {
+        "id": 211731709,
+        "node_id": "W_kwDOMEhW084MnsT9",
+        "name": "X OAuth Token Generator",
+        "path": ".github/workflows/x-oauth.yml",
+        "state": "active",
+        "created_at": "2025-11-30T23:08:47.000-05:00",
+        "updated_at": "2025-11-30T23:08:47.000-05:00",
+        "url": "https://api.github.com/repos/intertwine/social-compliance-generator/actions/workflows/211731709",
+        "html_url": "https://github.com/intertwine/social-compliance-generator/blob/main/.github/workflows/x-oauth.yml",
+        "badge_url": "https://github.com/intertwine/social-compliance-generator/workflows/X%20OAuth%20Token%20Generator/badge.svg"
+      },
+      {
+        "id": 210057836,
+        "node_id": "W_kwDOMEhW084MhTps",
+        "name": "Copilot code review",
+        "path": "dynamic/copilot-pull-request-reviewer/copilot-pull-request-reviewer",
+        "state": "active",
+        "created_at": "2025-11-24T21:13:15.000-05:00",
+        "updated_at": "2025-11-24T21:13:15.000-05:00",
+        "url": "https://api.github.com/repos/intertwine/social-compliance-generator/actions/workflows/210057836",
+        "html_url": "https://github.com/intertwine/social-compliance-generator/actions/workflows/copilot-pull-request-reviewer/copilot-pull-request-reviewer",
+        "badge_url": "https://github.com/intertwine/social-compliance-generator/actions/workflows/copilot-pull-request-reviewer/copilot-pull-request-reviewer/badge.svg"
+      }
+    ]
+  },
+  "attribution": "Service-account name and creation dates match setup documentation, but other consumers have not been excluded. Account teardown needs preservation review."
+}
