@@ -1,0 +1,64 @@
+{
+  "capturedDate": "2026-09-05 ET",
+  "source": "Authenticated provider dashboards, metadata only",
+  "supabase": {
+    "name": "Social Compliance Generator",
+    "ref": "towpjxzsmxllfuzimzaa",
+    "organization": "Intertwine AI",
+    "orgId": "cadtlheagjojexrftpqw",
+    "region": "us-east-1",
+    "state": "PAUSED",
+    "pausedSince": "2025-05-01",
+    "backupAvailable": true,
+    "backupDownloaded": false
+  },
+  "trigger": {
+    "name": "Social Compliance Generator",
+    "id": "clwzlkvkc29ymln2lewl1aoe0",
+    "slug": "social-compliance-generator-u9yG",
+    "externalRef": "proj_yjoyprllpcarstivnblt",
+    "organizationSlug": "intertwine-ai-9be3",
+    "organizationId": "cluhu34jdh630n32jd4ypnhax",
+    "version": "V3",
+    "engine": "V1",
+    "status": "Deprecated; no runs executing",
+    "task": {
+      "id": "social-compliance-generator",
+      "type": "scheduled",
+      "source": "src/trigger/generate.ts",
+      "attachedSchedules": 0
+    },
+    "deployment": {
+      "id": "2rmjrtj1",
+      "version": "20240624.1",
+      "runtime": "Node.js"
+    },
+    "defaultRegion": "us-west-2",
+    "concurrency": {
+      "production": 20,
+      "staging": 10,
+      "development": 25
+    },
+    "gitIntegration": false,
+    "vercelIntegration": false,
+    "environmentVariableNames": [
+      "ANTHROPIC_API_KEY",
+      "AWS_S3_ACCESS_KEY_ID",
+      "AWS_S3_ENDPOINT",
+      "AWS_S3_REGION",
+      "AWS_S3_SECRET",
+      "HF_TOKEN",
+      "OPENAI_API_KEY",
+      "SUPABASE_KEY",
+      "SUPABASE_URL",
+      "X_API_ACCESS_TOKEN",
+      "X_API_CLIENT_ID",
+      "X_API_CLIENT_SECRET",
+      "X_API_CONSUMER_SECRET",
+      "X_API_CONSUMER_TOKEN",
+      "X_API_REFRESH_TOKEN",
+      "X_API_V1_ACCESS_SECRET",
+      "X_API_V1_ACCESS_TOKEN"
+    ]
+  }
+}
