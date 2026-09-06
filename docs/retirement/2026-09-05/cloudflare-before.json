@@ -1,0 +1,46 @@
+{
+  "capturedAt": "2026-09-06T02:45:00Z",
+  "source": "Authenticated Cloudflare configuration API via Aside",
+  "accountId": "5bf9ad375a7f4e2f0a55a00266c20b1e",
+  "bucket": {
+    "name": "social-compliance-generator",
+    "creation_date": "2025-11-30T18:40:19.176Z",
+    "location": "ENAM",
+    "storage_class": "Standard",
+    "jurisdiction": "default"
+  },
+  "inventory": {
+    "objects": 775,
+    "size": "1.71 GB",
+    "contentsArchived": false
+  },
+  "cors": null,
+  "eventNotifications": null,
+  "lifecycle": {
+    "rules": [
+      {
+        "id": "Default Multipart Abort Rule",
+        "enabled": true,
+        "conditions": {},
+        "abortMultipartUploadsTransition": {
+          "condition": {
+            "type": "Age",
+            "maxAge": 604800
+          }
+        }
+      }
+    ]
+  },
+  "objectLock": {
+    "rules": []
+  },
+  "domains": [],
+  "managedDomain": {
+    "enabled": false,
+    "bucketId": "7ac1815227244c6192d4d8cbfa310074",
+    "domain": "pub-7ac1815227244c6192d4d8cbfa310074.r2.dev"
+  },
+  "sippy": {
+    "enabled": false
+  }
+}
